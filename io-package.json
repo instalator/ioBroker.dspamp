@@ -16,6 +16,7 @@
                 "zh-cn": "首次出版"
             }
         },
+        "adminUI":{"config":"materialize"},
         "title": "DSP zone amplifier control",
         "titleLang": {
             "en": "DSP zone amplifier control",
