@@ -7,7 +7,6 @@ DSP zone amplifier control by instalator
 
 [Страница проекта](https://blog.instalator.ru/archives/category/dsp-%d1%83%d1%81%d0%b8%d0%bb%d0%b8%d1%82%d0%b5%d0%bb%d1%8c)
 
-
 ### TODO
 
 - Загрузка проекта SigmaStudio на DSP
