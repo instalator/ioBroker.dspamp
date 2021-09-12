@@ -1032,13 +1032,17 @@ function main(){
                 try {
                     device = JSON.parse(data);
                     adapter.log.debug('Parse config file ' + dataFile);
-                    createObjects(() => {
-                        confirmSplitterToObjects(() => {
-                            getAddressesMap(() => {
-                                connect();
+                    if(device.schematic){
+                        createObjects(() => {
+                            confirmSplitterToObjects(() => {
+                                getAddressesMap(() => {
+                                    connect();
+                                });
                             });
                         });
-                    });
+                    } else {
+                        connect();
+                    }
                 } catch (err) {
                     adapter.log.debug('Parse config file Error: ' + err);
                     fs.writeFile(dataFile, '', (err) => {
