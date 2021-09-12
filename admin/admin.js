@@ -423,11 +423,11 @@ function getDeviceFile(cb){
 function preloader(state){
     if (state){
         timeoutPreloaderStart = setTimeout(function (){
-            window.parent.$('#connecting').show();
+            //window.parent.$('#connecting').show();
         }, 200);
     } else {
         timeoutPreloaderStart && clearTimeout(timeoutPreloaderStart);
-        window.parent.$('#connecting').hide();
+        //window.parent.$('#connecting').hide();
     }
 }
 
