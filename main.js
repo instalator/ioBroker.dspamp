@@ -750,7 +750,9 @@ const connect = () => {
     dsp.on('open', () => {
         adapter.log.info(dsp.url + ' DSP AMP connected');
         permit = true;
-        pollDevice();
+        if(device.schematic){
+            pollDevice();
+        }
         timeOutSend = setTimeout(() => {
             timeOutSend && clearTimeout(timeOutSend);
             timeOutSend = null;
