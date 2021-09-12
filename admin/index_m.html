@@ -1,0 +1,233 @@
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="../../css/adapter.css"/>
+    <link rel="stylesheet" type="text/css" href="../../lib/css/materialize.css">
+    <script type="text/javascript" src="../../lib/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="../../socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="../../js/translate.js"></script>
+    <script type="text/javascript" src="../../lib/js/materialize.js"></script>
+    <script type="text/javascript" src="../../js/adapter-settings.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <link rel="stylesheet" type="text/css" href="js/lmdd.css"/>
+    <script type="text/javascript" src="words.js"></script>
+    <script type="text/javascript" src="admin.js"></script>
+    <script type="text/javascript" src="js/lmdd.js"></script>
+</head>
+
+<body>
+<div class="m adapter-container">
+    <!--<div class="row">
+        <div class="col s12 m4 l2">
+            <img src="dspamp.png" class="logo" style="width: 100px" alt="DSP AMP adapter logo">
+        </div>
+    </div>-->
+    <div class="row navbar-fixed" style="margin-bottom: 0px;">
+        <nav class="nav-extended">
+            <div class="nav-content">
+                <ul class="tabs tabs-transparent">
+                    <li class="tab"><a href="#tab-main" class="active"><i class="material-icons left">settings</i><span class="translate">main settings</span></a></li>
+                    <li class="tab" id="settings-zone"><a href="#tab-settings-zone"><i class="material-icons left">speaker_group</i><span class="translate">settings zone</span></a></li>
+                    <li class="tab" id="settings-input"><a href="#tab-settings-input"><i class="material-icons left">settings_input_component</i><span class="translate">settings input</span></a></li>
+                    <li class="tab"><a href="#tab-settingsDevice"><i class="material-icons left">memory</i><span class="translate">settings device</span></a></li>
+                    <a style="margin-top: 3px;" id="add-button" class="btn-floating waves-effect waves-light red modal-trigger hoverable right scale-transition scale-out"
+                       href="#modaladd-zone"><i class="material-icons right">add</i></a>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <div id="tabs" class="tabs-content row" style="margin-top: 0px;">
+        <div id="tab-main" class="col s12 page active">
+            <div class="row">
+                <div class="col s12">
+                    <div class="col s2 input-field">
+                        <input type="text" class="value validate" id="host"/>
+                        <label for="host" class="translate">host</label>
+                    </div>
+                    <div class="col s1 input-field">
+                        <input type="number" min="0" max="99999" class="value validate" id="port"/>
+                        <label for="port" class="translate">port</label>
+                        <span class="translate">def</span>
+                    </div>
+                    <div class="col s2 input-field">
+                        <button id="get-config-btn" class="btn waves-effect waves-light" type="submit" name="action">
+                            <span class="translate">Сheck</span>
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                    <div class="col input-field right">
+                        <a id="upload-btn" class="btn waves-effect waves-light modal-trigger right" href="#modalupload">
+                            <span class="translate">Upload config files</span>
+                            <i class="material-icons right">file_upload</i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <p class="translate title">DSP Amplifier configuration</p>
+            </div>
+            <div class="row">
+                <div id="map" class="col">
+                </div>
+            </div>
+        </div>
+        <div id="tab-settings-zone" class="col s12 page">
+            <div id="map-zones"></div>
+        </div>
+        <div id="tab-settings-input" class="col s12 page">
+            <div id="map-inputs"></div>
+        </div>
+        <div id="tab-settingsDevice" class="col s12 page">
+            <div class="row">
+                <div class="col s12">
+                    <div class="col s3 input-field">
+                        <input type="text" class="value" id="host_name" maxlength="40"/>
+                        <label for="host_name" class="translate">host_name</label>
+                    </div>
+                    <div class="col input-field">
+                        <input type="checkbox" class="value use_mqtt" id="use_mqtt"/>
+                        <label for="use_mqtt" class="translate">use_mqtt</label>
+                    </div>
+                </div>
+            </div>
+            <div id="mqtt-settings">
+                <p class="translate title">MQTT configuration</p>
+                <div class="row">
+                    <div class="col s12">
+                        <div class="col s2 input-field">
+                            <input type="text" class="value validate" id="mqtt_server" maxlength="40"/>
+                            <label for="mqtt_server" class="translate">mqtt_server</label>
+                        </div>
+                        <div class="col s1 input-field">
+                            <input type="number" min="0" max="99999" class="value validate" id="mqtt_port" maxlength="5"/>
+                            <label for="mqtt_port" class="translate">mqtt_port</label>
+                            <span class="translate">desc mqtt_port</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col s12">
+                        <div class="col s2 input-field">
+                            <input type="text" class="value validate" id="mqtt_user" maxlength="40"/>
+                            <label for="mqtt_user" class="translate">mqtt_user</label>
+                        </div>
+                        <div class="col s2 input-field">
+                            <input type="password" class="value validate" id="mqtt_pass" maxlength="40"/>
+                            <label for="mqtt_pass" class="translate">mqtt_pass</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col s12">
+                        <div class="col s2 input-field">
+                            <input type="text" class="value validate" id="mqtt_client_id" maxlength="40"/>
+                            <label for="mqtt_client_id" class="translate">mqtt_client_id</label>
+                        </div>
+                        <div class="col s2 input-field">
+                            <input type="text" min="0" class="value validate" id="mqtt_topic" maxlength="40"/>
+                            <label for="mqtt_topic" class="translate">mqtt_topic</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col s12">
+                        <div class="col input-field">
+                            <input type="checkbox" class="value" id="retain"/>
+                            <label for="retain" class="translate">retain flag</label>
+                        </div>
+                        <div class="col input-field">
+                            <input type="checkbox" class="value" id="set_topic"/>
+                            <label for="set_topic" class="translate">set_topic</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <div class="col s2 input-field">
+                        <button id="save_to_dev-btn" class="btn waves-effect waves-light" type="submit" name="action">
+                            <span class="translate">Save to device</span>
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal modalupload modal-fixed-footer" id="modalupload">
+        <div id="modal-upload-content" class="modal-content">
+            <h6><span class="translate">upload config file</span></h6>
+            <div class="row col s12">
+                <label class="translate">choose file</label>
+            </div>
+            <div class="col s12 file-field input-field">
+                <div class="col s2 btn">
+                    <span class="translate">Files</span>
+                    <input id="uploads" accept=".h, .xml" type="file" multiple>
+                    <i class="material-icons right">insert_drive_file</i>
+                </div>
+                <div class="col s8 file-path-wrapper">
+                    <label>
+                        <input class="file-path validate" type="text" placeholder="Upload one or more files">
+                    </label>
+                </div>
+            </div>
+            <div class="row col s12">
+                <label class="translate">Accepted File Types : .h, .xml</label>
+            </div>
+            <div id="fileList" class="row col s12">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="modal-close btn waves-effect waves-green">
+                <span class="translate">close</span>
+                <i class="material-icons left">close</i>
+            </a>
+        </div>
+    </div>
+    <div class="modal modaladd-zone modal-fixed-footer" id="modaladd-zone">
+        <div id="modal-add-zone-content" class="modal-content">
+            <h6><span class="translate">Add zone</span></h6>
+            <div class="col s12 input-field">
+                <div class="col s2 input-field">
+                    <input type="text" class="value validate" id="name-zone"/>
+                    <label for="name-zone" class="translate">name zone</label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="modal-close btn waves-effect waves-green">
+                <span class="translate">cancel</span>
+                <i class="material-icons left">close</i>
+            </a>
+            <button id='confirm-add-zone-btn' class="btn waves-effect waves-light" type="submit" name="action">
+                <span class="translate">save</span>
+                <i class="material-icons left">save</i>
+            </button>
+        </div>
+    </div>
+    <div class="modal modaladd-input modal-fixed-footer" id="modaladd-input">
+        <div id="modal-add-input-content" class="modal-content">
+            <h6><span class="translate">Add input device</span></h6>
+            <div class="col s12 input-field">
+                <div class="col s2 input-field">
+                    <input type="text" class="value validate" id="name-input"/>
+                    <label for="name-input" class="translate">name input</label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="modal-close btn waves-effect waves-green">
+                <span class="translate">cancel</span>
+                <i class="material-icons left">close</i>
+            </a>
+            <button id='confirm-add-input-btn' class="btn waves-effect waves-light" type="submit" name="action">
+                <span class="translate">save</span>
+                <i class="material-icons left">save</i>
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

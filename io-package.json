@@ -1,0 +1,135 @@
+{
+    "common": {
+        "name": "dspamp",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "zh-cn": "首次出版"
+            }
+        },
+        "title": "DSP zone amplifier control",
+        "titleLang": {
+            "en": "DSP zone amplifier control",
+            "de": "DSP-Zonenverstärkersteuerung",
+            "ru": "Управление зонным DSP усилителем от insalator`а",
+            "pt": "Controle de amplificador de zona DSP",
+            "nl": "DSP zone versterker controle",
+            "fr": "Contrôle de l'amplificateur de zone DSP",
+            "it": "Controllo dell'amplificatore di zona DSP",
+            "es": "Control de amplificador de zona DSP",
+            "pl": "Sterowanie wzmacniaczem strefowym DSP",
+            "zh-cn": "DSP 商用功率放大器控制"
+        },
+        "desc": {
+            "en": "DSP zone amplifier control by instalator",
+            "de": "DSP-Zonenverstärkersteuerung durch Installateur in",
+            "ru": "Управление зонным DSP усилителем от insalator`а",
+            "pt": "Controle do amplificador de zona DSP pelo instalador",
+            "nl": "DSP-zoneversterkerregeling door instalator",
+            "fr": "Contrôle de l'amplificateur de zone DSP par l'installateur",
+            "it": "Controllo dell'amplificatore di zona DSP tramite installatore",
+            "es": "Control de amplificador de zona DSP por instalador",
+            "pl": "sterowanie wzmacniaczem strefowym DSP przez instalatora",
+            "zh-cn": "由安装者控制 DSP 区域放大器"
+        },
+        "authors": [
+            "instalator <vvvalt@mail.ru>"
+        ],
+        "keywords": [
+            "instalator",
+            "dsp amplifier"
+        ],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "main": "main.js",
+        "icon": "dspamp.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/instalator/ioBroker.dspamp/master/admin/dspamp.png",
+        "readme": "https://github.com/instalator/ioBroker.dspamp/blob/master/README.md",
+        "loglevel": "info",
+        "messagebox": true,
+        "restartAdapters": [
+            "vis"
+        ],
+        "mode": "daemon",
+        "type": "multimedia",
+        "compact": true,
+        "materialize": true,
+        "dependencies": [
+            {
+                "js-controller": ">=1.4.2"
+            },
+            "vis"
+        ]
+    },
+    "native": {
+        "host": "192.168.88.3",
+        "port": 81
+    },
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "control",
+            "type": "device",
+            "common": {
+                "name": "control modules DSP"
+            },
+            "native": {}
+        },
+        {
+            "_id": "zones",
+            "type": "device",
+            "common": {
+                "name": "Zones"
+            },
+            "native": {}
+        },
+        {
+            "_id": "inputs",
+            "type": "device",
+            "common": {
+                "name": "Inputs"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Device or service connected",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "",
+            "type": "meta",
+            "common": {
+                "name": " DSP Amplifier",
+                "role": "meta.user"
+            },
+            "native": {}
+        }
+    ]
+}

@@ -1,0 +1,53 @@
+/* You can delete those if you want. I just found them very helpful */
+* {
+    box-sizing: border-box
+}
+
+.m {
+    /* Don't cut off dropdowns! */
+    overflow: initial;
+}
+
+.adapter-body {
+    display: block;
+}
+
+.m .input-field > label {
+    color: #5a5a5a;
+}
+
+.adapter-body::after {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    content: "";
+    background: url(background.png);
+    background-position: top;
+    background-repeat: no-repeat;
+    background-size: cover;
+    opacity: 0.2;
+    position: absolute;
+    z-index: -1;
+}
+
+.outputs-grid {
+    background: #009688;
+    font-size: 1.3em;
+}
+
+.outputs-grid > i {
+    vertical-align: bottom;
+}
+
+.lmdd-block > i {
+    cursor: grab;
+    font-size: 3rem;
+    vertical-align: middle;
+    color: #5757579e;
+}
+
+.lmdd-block > span {
+    font-size: 1.3em;
+    vertical-align: middle;
+}
