@@ -715,9 +715,15 @@ function setSatates(states){
 }
 
 function pollDevice(){
-    getAddressArray((addresses) => {
-        iterator(addresses);
-    });
+    if (device.address_map){
+        getAddressArray((addresses) => {
+            iterator(addresses);
+        });
+    } else {
+        getAddressesMap(() => {
+            pollDevice();
+        });
+    }
 }
 
 function getAddressesMap(cb){
@@ -750,7 +756,7 @@ const connect = () => {
     dsp.on('open', () => {
         adapter.log.info(dsp.url + ' DSP AMP connected');
         permit = true;
-        if(device.schematic){
+        if (device.schematic){
             pollDevice();
         }
         timeOutSend = setTimeout(() => {
@@ -1034,7 +1040,7 @@ function main(){
                 try {
                     device = JSON.parse(data);
                     adapter.log.debug('Parse config file ' + dataFile);
-                    if(device.schematic){
+                    if (device.schematic){
                         createObjects(() => {
                             confirmSplitterToObjects(() => {
                                 getAddressesMap(() => {

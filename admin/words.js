@@ -481,5 +481,7 @@ systemDictionary = {
         'es':    'Archivos',
         'pl':    'Pliki',
         'zh-cn': '文件'
-    }
+    },
+    "XML file not found, download project XML file first.": {"en": "XML file not found, download project XML file first.", "de": "XML file not found, download project XML file first.", "ru": "XML file not found, download project XML file first.", "pt": "XML file not found, download project XML file first.", "nl": "XML file not found, download project XML file first.", "fr": "XML file not found, download project XML file first.", "es": "XML file not found, download project XML file first.", "pl": "XML file not found, download project XML file first.", "it": "XML file not found, download project XML file first.", "zh-cn": "XML file not found, download project XML file first."},
+    "Error": {"en": "Error", "de": "Error", "ru": "Error", "pt": "Error", "nl": "Error", "fr": "Error", "es": "Error", "pl": "Error", "it": "Error", "zh-cn": "Error"},
 };

@@ -13,28 +13,28 @@ function load(settings, onChange){
             showMessage(_('Adapter is not running'), _('Error'), 'error_outline');
         } else {
             getConfigFromDevice(function (){
-                checkXmlProject(() => {
-                    getDeviceFile(function (){
-                        $('.value').each(function (){
-                            const $key = $(this);
-                            const id = $key.attr('id');
-                            if ($key.attr('type') === 'checkbox'){
-                                $key.prop('checked', settings[id]).change(function (){
-                                    onChange();
-                                });
-                            } else {
-                                $key.val(settings[id]).change(function (){
-                                    onChange();
-                                }).keyup(function (){
-                                    onChange();
-                                });
-                            }
-                        });
-                        onChange(false);
-                        setDeviceSettings();
-                        M && M.updateTextFields();
+                //checkXmlProject(() => {
+                getDeviceFile(function (){
+                    $('.value').each(function (){
+                        const $key = $(this);
+                        const id = $key.attr('id');
+                        if ($key.attr('type') === 'checkbox'){
+                            $key.prop('checked', settings[id]).change(function (){
+                                onChange();
+                            });
+                        } else {
+                            $key.val(settings[id]).change(function (){
+                                onChange();
+                            }).keyup(function (){
+                                onChange();
+                            });
+                        }
                     });
+                    onChange(false);
+                    setDeviceSettings();
+                    M && M.updateTextFields();
                 });
+                //});
             });
         }
     });
@@ -222,38 +222,50 @@ $(document).ready(function (){
 });
 
 function showMapZoneOtputsContainer(cb){
-    let html = '';
-    html += '<div class="col s2">\n' +
-        '                    <div class="grid undefined">' +
-        '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Free outputs</span></div>';
-    device.zones.undefined.outputs.forEach(function (item){
-        html += '<div class="z-depth-3 item col s12">' +
-            '       <div class="content lmdd-block"><i class="material-icons handle" >volume_up</i>' +
-            '<span >Output_' + item + '</span>' +
-            /*'            <div class="task">Output_' + item + '</div>\n' +*/
-            '       </div>' +
-            '    </div>';
-    });
-    html += '</div></div>';
-    $('#map-zones').html(html);
-    cb && cb();
+    if (device.zones){
+        let html = '';
+        html += '<div class="col s2">\n' +
+            '                    <div class="grid undefined">' +
+            '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Free outputs</span></div>';
+        device.zones.undefined.outputs.forEach(function (item){
+            html += '<div class="z-depth-3 item col s12">' +
+                '       <div class="content lmdd-block"><i class="material-icons handle" >volume_up</i>' +
+                '<span >Output_' + item + '</span>' +
+                /*'            <div class="task">Output_' + item + '</div>\n' +*/
+                '       </div>' +
+                '    </div>';
+        });
+        html += '</div></div>';
+        $('#map-zones').html(html);
+        cb && cb();
+    } else {
+        checkXmlProject(() => {
+            showMapZoneOtputsContainer(cb);
+        });
+    }
 }
 
 function showMapInputsContainer(cb){
-    let html = '';
-    html += '<div class="col s2">\n' +
-        '                    <div class="grid undefined">' +
-        '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Unnamed inputs</span></div>';
-    device.inputs.undefined.inputs.forEach(function (item){
-        html += '<div class="z-depth-3 item col s12">' +
-            '       <div class="content lmdd-block"><i class="material-icons handle" >input</i>' +
-            '<span >Input_' + item + '</span>' +
-            '       </div>' +
-            '    </div>';
-    });
-    html += '</div></div>';
-    $('#map-inputs').html(html);
-    cb && cb();
+    if (device.inputs){
+        let html = '';
+        html += '<div class="col s2">\n' +
+            '                    <div class="grid undefined">' +
+            '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Unnamed inputs</span></div>';
+        device.inputs.undefined.inputs.forEach(function (item){
+            html += '<div class="z-depth-3 item col s12">' +
+                '       <div class="content lmdd-block"><i class="material-icons handle" >input</i>' +
+                '<span >Input_' + item + '</span>' +
+                '       </div>' +
+                '    </div>';
+        });
+        html += '</div></div>';
+        $('#map-inputs').html(html);
+        cb && cb();
+    } else {
+        checkXmlProject(() => {
+            showMapInputsContainer(cb);
+        });
+    }
 }
 
 function drawMapZone(){
