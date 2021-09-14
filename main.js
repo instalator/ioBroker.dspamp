@@ -716,9 +716,15 @@ function setSatates(states){
 }
 
 function pollDevice(){
-    getAddressArray((addresses) => {
-        iterator(addresses);
-    });
+    if (device.address_map){
+        getAddressArray((addresses) => {
+            iterator(addresses);
+        });
+    } else {
+        getAddressesMap(() => {
+            pollDevice();
+        });
+    }
 }
 
 function getAddressesMap(cb){
