@@ -57,6 +57,8 @@ const formats = {
             return linear_to_hexFloat(val);
         },
         hexToVal: (val) => {
+            if(!hexFloatToLinear(val)) {
+            }
             return hexFloatToLinear(val); // hexFloat to linear
         }
     }
@@ -760,10 +762,11 @@ const connect = () => {
         if (device.schematic){
             pollDevice();
         }
+        timeoutTimer && clearInterval(timeoutTimer);
+        pingTimer && clearInterval(pingTimer);
         timeOutSend = setTimeout(() => {
             timeOutSend && clearTimeout(timeOutSend);
             timeOutSend = null;
-            //send('~');
         }, 5000);
         pingTimer = setInterval(() => {
             if (dsp){
@@ -800,6 +803,7 @@ const connect = () => {
     dsp.on('close', (e) => {
         pingTimer && clearInterval(pingTimer);
         timeoutTimer && clearInterval(timeoutTimer);
+        timeOutSend && clearTimeout(timeOutSend);
         adapter.log.debug('ERROR! WS CLOSE, CODE - ' + e);
         adapter.log.debug('DSP reconnect after 10 seconds');
         adapter.setState('info.connection', false, true);
@@ -814,9 +818,6 @@ function send(data, cb){
     if (dsp){
         dsp.once('message', (msg) => {
             adapter.log.debug('Response data - ' + msg);
-            /*if (msg !== 'OK' && msg !== 'Connected'){
-                //parse(msg);
-            }*/
             permit = true;
             if (msg === 'Connected'){
                 isAlive = true;
@@ -836,7 +837,7 @@ function send(data, cb){
                     adapter.log.error('Send command: {' + data + '}, ERROR - ' + e);
                     if (~e.toString().indexOf('CLOSED')){
                         adapter.setState('info.connection', false, true);
-                        connect();
+                        //connect();
                     }
                 } else {
                     adapter.log.debug('Sended command:{' + data + '}');
@@ -1153,10 +1154,10 @@ function linear_to_dB(linear){ // linear 0-100 // TODO
 }
 
 function hexFloatToLinear(val){
-    const sign = (parseInt(val, 16) & 0x800000) ? -1 :1;
+    const sign = (parseInt(val, 16) & 0x80000000) ? -1 :1;
     const float = sign * parseInt(val, 16) / Math.pow(2, 24);
     return Math.round((Math.pow(10.0, float_to_dB(float) / 20.0) * 100) * 10) / 10;
-    //return Math.round((Math.pow(Math.exp(1), float_to_dB(float) / 20.0) * 100) * 10) / 10;
+    // OR return Math.round((Math.pow(Math.exp(1), float_to_dB(float) / 20.0) * 100) * 10) / 10;
 }
 
 function linear_to_float(linear){ // linear 0-100 // TODO

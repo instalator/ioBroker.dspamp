@@ -183,11 +183,11 @@ $(document).ready(function (){
             if (tab.index === 1){
                 $('.navbar-fixed ul #add-button').removeClass('scale-out').addClass('scale-in');
                 $('#add-button').attr('href', '#modaladd-zone');
-                showMapZone();
+                drawMapZone();
             } else if (tab.index === 2){
                 $('.navbar-fixed ul #add-button').removeClass('scale-out').addClass('scale-in');
                 $('#add-button').attr('href', '#modaladd-input');
-                showMapInput();
+                drawMapInput();
             } else {
                 $('.navbar-fixed ul #add-button').removeClass('scale-in').addClass('scale-out');
             }
@@ -377,18 +377,6 @@ function checkXmlProject(cb){
     });
 }
 
-function showMapZone(){
-    //checkXmlProject(() => {
-    drawMapZone();
-    //});
-}
-
-function showMapInput(){
-    //checkXmlProject(() => {
-    drawMapInput();
-    //});
-}
-
 function addFileList(){
     sendToadapter('readDir', null, function (msg){
         if (!msg.error){
@@ -449,13 +437,11 @@ function getDeviceFile(cb){
 function preloader(state){
     if (state){
         timeoutPreloaderStart = setTimeout(function (){
-            //window.parent.$('#connecting').show();
             $('#preloader_dspamp').css({display: 'block'});
         }, 200);
     } else {
         timeoutPreloaderStart && clearTimeout(timeoutPreloaderStart);
         $('#preloader_dspamp').css({display: 'none'});
-        //window.parent.$('#connecting').hide();
     }
 }
 
