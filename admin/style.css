@@ -51,3 +51,9 @@
     font-size: 1.3em;
     vertical-align: middle;
 }
+
+#preloader_dspamp{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}

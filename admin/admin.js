@@ -59,6 +59,7 @@ function setDeviceSettings(){
 }
 
 $(document).ready(function (){
+    preloader(false);
     showDonate();
     $('.modal').modal();
     lmdd.set(document.getElementById('map-zones'), {
@@ -196,7 +197,7 @@ $(document).ready(function (){
     $('.modalupload').modal({
         onOpenStart(){
             addFileList();
-            document.getElementById('uploads').addEventListener('change', handleFileSelect, false);
+            document.getElementById('uploads_config_project').addEventListener('change', handleFileSelect, false);
         },
     });
 
@@ -204,6 +205,7 @@ $(document).ready(function (){
         const files = evt.target.files;
         let count = 0;
         for (let i = 0, f; f = files[i]; i++) { //for (let i = 0, f; f = files[i]; i++) {
+            f = files[i];
             if (f.size > 1024 * 1024){
                 showMessage(_('File %s is too big. Maximum 1MB', escape(f.name)));
                 return;
@@ -222,38 +224,50 @@ $(document).ready(function (){
 });
 
 function showMapZoneOtputsContainer(cb){
-    let html = '';
-    html += '<div class="col s2">\n' +
-        '                    <div class="grid undefined">' +
-        '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Free outputs</span></div>';
-    device.zones.undefined.outputs.forEach(function (item){
-        html += '<div class="z-depth-3 item col s12">' +
-            '       <div class="content lmdd-block"><i class="material-icons handle" >volume_up</i>' +
-            '<span >Output_' + item + '</span>' +
-            /*'            <div class="task">Output_' + item + '</div>\n' +*/
-            '       </div>' +
-            '    </div>';
-    });
-    html += '</div></div>';
-    $('#map-zones').html(html);
-    cb && cb();
+    if (device.zones){
+        let html = '';
+        html += '<div class="col s2">\n' +
+            '                    <div class="grid undefined">' +
+            '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Free outputs</span></div>';
+        device.zones.undefined.outputs.forEach(function (item){
+            html += '<div class="z-depth-3 item col s12">' +
+                '       <div class="content lmdd-block"><i class="material-icons handle" >volume_up</i>' +
+                '<span >Output_' + item + '</span>' +
+                /*'            <div class="task">Output_' + item + '</div>\n' +*/
+                '       </div>' +
+                '    </div>';
+        });
+        html += '</div></div>';
+        $('#map-zones').html(html);
+        cb && cb();
+    } else {
+        checkXmlProject(() => {
+            showMapZoneOtputsContainer(cb);
+        });
+    }
 }
 
 function showMapInputsContainer(cb){
-    let html = '';
-    html += '<div class="col s2">\n' +
-        '                    <div class="grid undefined">' +
-        '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Unnamed inputs</span></div>';
-    device.inputs.undefined.inputs.forEach(function (item){
-        html += '<div class="z-depth-3 item col s12">' +
-            '       <div class="content lmdd-block"><i class="material-icons handle" >input</i>' +
-            '<span >Input_' + item + '</span>' +
-            '       </div>' +
-            '    </div>';
-    });
-    html += '</div></div>';
-    $('#map-inputs').html(html);
-    cb && cb();
+    if (device.zones){
+        let html = '';
+        html += '<div class="col s2">\n' +
+            '                    <div class="grid undefined">' +
+            '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Unnamed inputs</span></div>';
+        device.inputs.undefined.inputs.forEach(function (item){
+            html += '<div class="z-depth-3 item col s12">' +
+                '       <div class="content lmdd-block"><i class="material-icons handle" >input</i>' +
+                '<span >Input_' + item + '</span>' +
+                '       </div>' +
+                '    </div>';
+        });
+        html += '</div></div>';
+        $('#map-inputs').html(html);
+        cb && cb();
+    } else {
+        checkXmlProject(() => {
+            showMapInputsContainer(cb);
+        });
+    }
 }
 
 function drawMapZone(){
@@ -342,20 +356,22 @@ function delInput(input){
 
 function checkXmlProject(cb){
     sendToadapter('checkXmlProject', {}, function (msg){
-        device = msg;
-        if (!device.zones){
-            device.zones = {
-                undefined: {
-                    outputs: device.mxn.output.list_array
-                }
-            };
-        }
-        if (!device.inputs){
-            device.inputs = {
-                undefined: {
-                    inputs: device.mxn.input.list_array
-                }
-            };
+        if (!msg.error){
+            device = msg;
+            if (!device.zones){
+                device.zones = {
+                    undefined: {
+                        outputs: device.mxn.output.list_array
+                    }
+                };
+            }
+            if (!device.inputs){
+                device.inputs = {
+                    undefined: {
+                        inputs: device.mxn.input.list_array
+                    }
+                };
+            }
         }
         cb && cb();
     });
@@ -375,27 +391,33 @@ function showMapInput(){
 
 function addFileList(){
     sendToadapter('readDir', null, function (msg){
-        let html = '<table><tr><th class="translate">filename</th><th>size</th><th>del</th></tr>';
-        if (msg.length > 0){
-            for (let i = 0; i < msg.length; i++) {
-                html += '<tr><td><i class="material-icons cyan-text text-darken-4">description</i><span style="vertical-align: super;">' + msg[i].name + '</span></td>' +
-                    '<td>' + parseFloat(msg[i].stats.size / 1024).toFixed(1) + ' kB</td>' +
-                    '<td><a class="" onclick="delFile(\'' + msg[i].name + '\')"><i class="delfile material-icons cyan-text text-darken-4" style="cursor: pointer;">clear</i></a></td></tr>';
+        if (!msg.error){
+            let html = '<table><tr><th class="translate">filename</th><th>size</th><th>del</th></tr>';
+            if (msg.length > 0){
+                for (let i = 0; i < msg.length; i++) {
+                    html += '<tr><td><i class="material-icons cyan-text text-darken-4">description</i><span style="vertical-align: super;">' + msg[i].name + '</span></td>' +
+                        '<td>' + parseFloat(msg[i].stats.size / 1024).toFixed(1) + ' kB</td>' +
+                        '<td><a class="" onclick="delFile(\'' + msg[i].name + '\')"><i class="delfile material-icons cyan-text text-darken-4" style="cursor: pointer;">clear</i></a></td></tr>';
+                }
             }
+            html += '</table>';
+            $('#fileList').html(html);
         }
-        html += '</table>';
-        $('#fileList').html(html);
     });
 }
 
 function delFile(file){
     sendToadapter('delFile', {filename: file}, function (msg){
-        addFileList();
+        if (!msg.error){
+            addFileList();
+        }
     });
 }
 
 function uploadFile(file, cb){
     const reader = new FileReader();
+    //reader.readAsArrayBuffer(file);
+    reader.readAsText(file);
     reader.onload = function (e){
         const data = e.target.result;
         const filename = file.name;
@@ -403,20 +425,24 @@ function uploadFile(file, cb){
             filename,
             data
         }, function (msg){
-            cb && cb(file.name);
+            if (!msg.error){
+                _onChange();
+                cb && cb(file.name);
+            }
         });
     };
     reader.onerror = function (){
         console.error('uploadFile Error - ' + reader.error);
     };
-    reader.readAsArrayBuffer(file);
 }
 
 function getDeviceFile(cb){
     sendToadapter('getDeviceFile', {}, function (msg){
-        device = msg;
-        showMap();
-        cb && cb();
+        if (!msg.error){
+            device = msg;
+            showMap();
+            cb && cb();
+        }
     });
 }
 
@@ -424,9 +450,11 @@ function preloader(state){
     if (state){
         timeoutPreloaderStart = setTimeout(function (){
             //window.parent.$('#connecting').show();
+            $('#preloader_dspamp').css({display: 'block'});
         }, 200);
     } else {
         timeoutPreloaderStart && clearTimeout(timeoutPreloaderStart);
+        $('#preloader_dspamp').css({display: 'none'});
         //window.parent.$('#connecting').hide();
     }
 }
@@ -446,7 +474,9 @@ function saveConfigToDevice(cb){
         use_mqtt:       $('#use_mqtt').prop('checked').toString(),
     };
     sendToadapter('saveConfigToDevice', {data}, function (msg){
-        cb && cb();
+        if (!msg.error){
+            cb && cb();
+        }
     });
 }
 
@@ -461,8 +491,10 @@ function sendToadapter(cmd, data, cb){
         preloader(false);
         if (msg){
             if (msg.error){
-                showMessage(_(msg.error), _('Error'), 'error_outline');
+                const e = msg.error;
                 msg = null;
+                showMessage(_(e), _('Error'), 'error_outline');
+                cb && cb({error: e});
             } else {
                 cb && cb(msg);
             }
@@ -477,8 +509,11 @@ function getConfigFromDevice(cb){
         host,
         port
     }, function (msg){
-        device = msg;
-        cb ? cb() :showMap();
+        if (!msg.error){
+            device = msg;
+            _onChange();
+            cb ? cb() :showMap();
+        }
     });
 }
 

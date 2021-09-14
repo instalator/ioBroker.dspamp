@@ -26,8 +26,10 @@
             <div class="nav-content">
                 <ul class="tabs tabs-transparent">
                     <li class="tab"><a href="#tab-main" class="active"><i class="material-icons left">settings</i><span class="translate">main settings</span></a></li>
-                    <li class="tab" id="settings-zone"><a href="#tab-settings-zone"><i class="material-icons left">speaker_group</i><span class="translate">settings zone</span></a></li>
-                    <li class="tab" id="settings-input"><a href="#tab-settings-input"><i class="material-icons left">settings_input_component</i><span class="translate">settings input</span></a></li>
+                    <li class="tab" id="settings-zone"><a href="#tab-settings-zone"><i class="material-icons left">speaker_group</i><span class="translate">settings zone</span></a>
+                    </li>
+                    <li class="tab" id="settings-input"><a href="#tab-settings-input"><i class="material-icons left">settings_input_component</i><span class="translate">settings input</span></a>
+                    </li>
                     <li class="tab"><a href="#tab-settingsDevice"><i class="material-icons left">memory</i><span class="translate">settings device</span></a></li>
                     <a style="margin-top: 3px;" id="add-button" class="btn-floating waves-effect waves-light red modal-trigger hoverable right scale-transition scale-out"
                        href="#modaladd-zone"><i class="material-icons right">add</i></a>
@@ -164,13 +166,11 @@
             <div class="col s12 file-field input-field">
                 <div class="col s2 btn">
                     <span class="translate">Files</span>
-                    <input id="uploads" accept=".h, .xml" type="file" multiple>
+                    <input id="uploads_config_project" accept=".h,.xml" type="file" multiple>
                     <i class="material-icons right">insert_drive_file</i>
                 </div>
                 <div class="col s8 file-path-wrapper">
-                    <label>
-                        <input class="file-path validate" type="text" placeholder="Upload one or more files">
-                    </label>
+                    <input class="file-path validate" type="text" placeholder="Upload one or more files">
                 </div>
             </div>
             <div class="row col s12">
@@ -226,6 +226,22 @@
                 <span class="translate">save</span>
                 <i class="material-icons left">save</i>
             </button>
+        </div>
+    </div>
+
+    <div id="preloader_dspamp">
+        <div class="preloader-wrapper big active">
+            <div class="spinner-layer spinner-blue-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                    <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -2,7 +2,7 @@
 'use strict';
 
 systemDictionary = {
-    'dspamp adapter settings':        {
+    'dspamp adapter settings':                              {
         'en':    'Adapter settings for dspamp',
         'de':    'Adaptereinstellungen für dspamp',
         'ru':    'Настройки адаптера для dspamp',
@@ -14,7 +14,7 @@ systemDictionary = {
         'pl':    'Ustawienia adaptera dla dspamp',
         'zh-cn': 'dspamp的适配器设置'
     },
-    'option1':                        {
+    'option1':                                              {
         'en':    'option1',
         'de':    'Option 1',
         'ru':    'Опция 1',
@@ -26,7 +26,7 @@ systemDictionary = {
         'pl':    'opcja 1',
         'zh-cn': '选项1'
     },
-    'option2':                        {
+    'option2':                                              {
         'en':    'option2',
         'de':    'Option 2',
         'ru':    'option2',
@@ -38,7 +38,7 @@ systemDictionary = {
         'pl':    'Opcja 2',
         'zh-cn': '选项2'
     },
-    'myColor':                        {
+    'myColor':                                              {
         'en':    'myColor',
         'de':    'meineColor',
         'ru':    'Мой цвет',
@@ -50,7 +50,7 @@ systemDictionary = {
         'pl':    'mójKolor',
         'zh-cn': '我的颜色'
     },
-    'myColor_tooltip':                {
+    'myColor_tooltip':                                      {
         'en':    'Description of\nmyColor',
         'de':    'Beschreibung von\nmyColor',
         'ru':    'Описание\nmyColor',
@@ -62,7 +62,7 @@ systemDictionary = {
         'pl':    'Opis\nmyColor',
         'zh-cn': '\nmyColor的描述'
     },
-    'htmlText':                       {
+    'htmlText':                                             {
         'en':    'htmlText',
         'de':    'htmlText',
         'ru':    'htmlText',
@@ -74,7 +74,7 @@ systemDictionary = {
         'pl':    'htmlText',
         'zh-cn': 'htmlText'
     },
-    'group_extraMyset':               {
+    'group_extraMyset':                                     {
         'en':    'extraMyset',
         'de':    'extraMyset',
         'ru':    'extraMyset',
@@ -86,7 +86,7 @@ systemDictionary = {
         'pl':    'extraMyset',
         'zh-cn': 'extraMyset'
     },
-    'extraAttr':                      {
+    'extraAttr':                                            {
         'en':    'extraAttr',
         'de':    'extraAttr',
         'ru':    'extraAttr',
@@ -98,7 +98,7 @@ systemDictionary = {
         'pl':    'extraAttr',
         'zh-cn': 'extraAttr'
     },
-    'Instance':                       {
+    'Instance':                                             {
         'en':    'Instance',
         'de':    'Instanz',
         'ru':    'Инстанция',
@@ -110,7 +110,7 @@ systemDictionary = {
         'pl':    'Instancja',
         'zh-cn': '例'
     },
-    'main settings':                  {
+    'main settings':                                        {
         'en':    'main settings',
         'de':    'Haupteinstellungen',
         'ru':    'Основные настройки',
@@ -122,7 +122,7 @@ systemDictionary = {
         'pl':    'Ustawienia główne',
         'zh-cn': '主要设置'
     },
-    'settings zone':                  {
+    'settings zone':                                        {
         'en':    'zones settings',
         'de':    'Zoneneinstellungen',
         'ru':    'Настройка зон',
@@ -134,7 +134,7 @@ systemDictionary = {
         'pl':    'ustawienia stref',
         'zh-cn': '区域设置'
     },
-    'settings input':                 {
+    'settings input':                                       {
         'en':    'Inputs settings',
         'de':    'Eingabeeinstellungen',
         'ru':    'Настройки входов',
@@ -146,7 +146,7 @@ systemDictionary = {
         'pl':    'Ustawienia wejść',
         'zh-cn': '输入设置'
     },
-    'settings device':                {
+    'settings device':                                      {
         'en':    'settings device',
         'de':    'Einstellungen Gerät',
         'ru':    'Настройки устройства',
@@ -158,7 +158,7 @@ systemDictionary = {
         'pl':    'urządzenie ustawień',
         'zh-cn': '设置设备'
     },
-    'host':                           {
+    'host':                                                 {
         'en':    'Host IP ',
         'de':    'Host-IP',
         'ru':    'IP-адрес хоста',
@@ -170,7 +170,7 @@ systemDictionary = {
         'pl':    'Adres IP hosta',
         'zh-cn': '主机IP'
     },
-    'port':                           {
+    'port':                                                 {
         'en':    'Port',
         'de':    'Hafen',
         'ru':    'Порт',
@@ -182,7 +182,7 @@ systemDictionary = {
         'pl':    'Port',
         'zh-cn': '港口'
     },
-    'def':                            {
+    'def':                                                  {
         'en':    'Default 81',
         'de':    'Standard 81',
         'ru':    'По умолчанию 81',
@@ -194,7 +194,7 @@ systemDictionary = {
         'pl':    'Domyślnie 81',
         'zh-cn': '默认 81'
     },
-    'DSP Amplifier configuration':    {
+    'DSP Amplifier configuration':                          {
         'en':    'DSP Amplifier configuration',
         'de':    'DSP-Verstärkerkonfiguration',
         'ru':    'Конфигурация усилителя DSP',
@@ -206,7 +206,7 @@ systemDictionary = {
         'pl':    'Konfiguracja wzmacniacza DSP',
         'zh-cn': 'DSP 放大器配置'
     },
-    'host_name':                      {
+    'host_name':                                            {
         'en':    'Host name',
         'de':    'Hostname',
         'ru':    'Имя хоста',
@@ -218,7 +218,7 @@ systemDictionary = {
         'pl':    'Nazwa hosta',
         'zh-cn': '主机名'
     },
-    'use_mqtt':                       {
+    'use_mqtt':                                             {
         'en':    'Using mqtt',
         'de':    'mqtt . verwenden',
         'ru':    'Использовать MQTT',
@@ -230,31 +230,31 @@ systemDictionary = {
         'pl':    'Korzystanie z mqtt',
         'zh-cn': '使用 mqtt'
     },
-    'Add input device':               {
-        "en": "Add audio input device",
-        "de": "Audioeingabegerät hinzufügen",
-        "ru": "Добавить устройство ввода звука",
-        "pt": "Adicionar dispositivo de entrada de áudio",
-        "nl": "Audio-invoerapparaat toevoegen",
-        "fr": "Ajouter un périphérique d'entrée audio",
-        "it": "Aggiungi dispositivo di ingresso audio",
-        "es": "Agregar dispositivo de entrada de audio",
-        "pl": "Dodaj urządzenie wejściowe audio",
-        "zh-cn": "添加音频输入设备"
+    'Add input device':                                     {
+        'en':    'Add audio input device',
+        'de':    'Audioeingabegerät hinzufügen',
+        'ru':    'Добавить устройство ввода звука',
+        'pt':    'Adicionar dispositivo de entrada de áudio',
+        'nl':    'Audio-invoerapparaat toevoegen',
+        'fr':    'Ajouter un périphérique d\'entrée audio',
+        'it':    'Aggiungi dispositivo di ingresso audio',
+        'es':    'Agregar dispositivo de entrada de audio',
+        'pl':    'Dodaj urządzenie wejściowe audio',
+        'zh-cn': '添加音频输入设备'
     },
-    'name input':                     {
-        "en": "Input name",
-        "de": "Name eingeben",
-        "ru": "Имя входа",
-        "pt": "Nome de entrada",
-        "nl": "Invoernaam",
-        "fr": "Nom d'entrée",
-        "it": "Inserisci il nome",
-        "es": "Nombre de entrada",
-        "pl": "Wpisz nazwę",
-        "zh-cn": "输入名称"
+    'name input':                                           {
+        'en':    'Input name',
+        'de':    'Name eingeben',
+        'ru':    'Имя входа',
+        'pt':    'Nome de entrada',
+        'nl':    'Invoernaam',
+        'fr':    'Nom d\'entrée',
+        'it':    'Inserisci il nome',
+        'es':    'Nombre de entrada',
+        'pl':    'Wpisz nazwę',
+        'zh-cn': '输入名称'
     },
-    'MQTT configuration':             {
+    'MQTT configuration':                                   {
         'en':    'MQTT configuration',
         'de':    'MQTT-Konfiguration',
         'ru':    'Конфигурация MQTT',
@@ -266,7 +266,7 @@ systemDictionary = {
         'pl':    'Konfiguracja MQTT',
         'zh-cn': 'MQTT 配置'
     },
-    'mqtt_server':                    {
+    'mqtt_server':                                          {
         'en':    'MQTT server',
         'de':    'MQTT-Server',
         'ru':    'MQTT сервер',
@@ -278,7 +278,7 @@ systemDictionary = {
         'pl':    'Serwer MQTT',
         'zh-cn': 'MQTT 服务器'
     },
-    'mqtt_port':                      {
+    'mqtt_port':                                            {
         'en':    'MQTT port',
         'de':    'MQTT-Port',
         'ru':    'MQTT порт',
@@ -290,7 +290,7 @@ systemDictionary = {
         'pl':    'Port MQTT',
         'zh-cn': 'MQTT 端口'
     },
-    'desc mqtt_port':                 {
+    'desc mqtt_port':                                       {
         'en':    'Default 1883',
         'de':    'Standard 1883',
         'ru':    'По умолчанию 1883',
@@ -302,7 +302,7 @@ systemDictionary = {
         'pl':    'Domyślnie 1883',
         'zh-cn': '默认 1883'
     },
-    'retain flag':                    {
+    'retain flag':                                          {
         'en':    'Отправлять \'Retain\' flag',
         'de':    'тправлять \'Beibehalten\'-Flag',
         'ru':    'Отправлять флаг \'Retain\'',
@@ -314,7 +314,7 @@ systemDictionary = {
         'pl':    'Отправлять „Zatrzymaj” flagę',
         'zh-cn': 'Отправлять \'保留\'标志'
     },
-    'set_topic':                      {
+    'set_topic':                                            {
         'en':    'Using topics \'SET\'',
         'de':    'Verwenden von Themen \'SET\'',
         'ru':    'Использовать топики \'SET\'',
@@ -326,7 +326,7 @@ systemDictionary = {
         'pl':    'Korzystanie z tematów „SET”',
         'zh-cn': '使用主题“SET”'
     },
-    'mqtt_user':                      {
+    'mqtt_user':                                            {
         'en':    'MQTT user',
         'de':    'MQTT-Benutzer',
         'ru':    'Пользователь MQTT',
@@ -338,7 +338,7 @@ systemDictionary = {
         'pl':    'Użytkownik MQTT',
         'zh-cn': 'MQTT用户'
     },
-    'mqtt_pass':                      {
+    'mqtt_pass':                                            {
         'en':    'MQTT password',
         'de':    'MQTT-Passwort',
         'ru':    'Пароль MQTT',
@@ -350,7 +350,7 @@ systemDictionary = {
         'pl':    'Hasło MQTT',
         'zh-cn': 'MQTT 密码'
     },
-    'mqtt_client_id':                 {
+    'mqtt_client_id':                                       {
         'en':    'MQTT client id',
         'de':    'MQTT-Client-ID',
         'ru':    'Идентификатор клиента MQTT',
@@ -362,7 +362,7 @@ systemDictionary = {
         'pl':    'Identyfikator klienta MQTT',
         'zh-cn': 'MQTT 客户端 ID'
     },
-    'mqtt_topic':                     {
+    'mqtt_topic':                                           {
         'en':    'Main MQTT topic',
         'de':    'Hauptthema MQTT',
         'ru':    'Основной MQTT топик',
@@ -374,7 +374,7 @@ systemDictionary = {
         'pl':    'Główny temat MQTT',
         'zh-cn': '主要 MQTT 主题'
     },
-    'upload config file':             {
+    'upload config file':                                   {
         'en':    'Upload config file',
         'de':    'Konfigurationsdatei hochladen',
         'ru':    'Загрузить файл конфигурации',
@@ -386,7 +386,7 @@ systemDictionary = {
         'pl':    'Prześlij plik konfiguracyjny',
         'zh-cn': '上传配置文件'
     },
-    'choose file':                    {
+    'choose file':                                          {
         'en':    'Choose file',
         'de':    'Datei wählen',
         'ru':    'Выберите файл',
@@ -398,7 +398,7 @@ systemDictionary = {
         'pl':    'Wybierz plik',
         'zh-cn': '选择文件'
     },
-    'Accepted File Types : .h, .xml': {
+    'Accepted File Types : .h, .xml':                       {
         'en':    'Accepted File Types : *.h, *.xml',
         'de':    'Akzeptierte Dateitypen: *.h, *.xml',
         'ru':    'Допустимые типы файлов: *.h, *.xml',
@@ -410,7 +410,7 @@ systemDictionary = {
         'pl':    'Akceptowane typy plików: *.h, *.xml',
         'zh-cn': '接受的文件类型： *.h, *.xml'
     },
-    'Add zone':                       {
+    'Add zone':                                             {
         'en':    'Add zone',
         'de':    'Zone hinzufügen',
         'ru':    'Добавить зону',
@@ -422,7 +422,7 @@ systemDictionary = {
         'pl':    'Dodaj strefę',
         'zh-cn': '添加区域'
     },
-    'name zone':                      {
+    'name zone':                                            {
         'en':    'Name zone',
         'de':    'Namenszone',
         'ru':    'Имя зоны',
@@ -434,7 +434,7 @@ systemDictionary = {
         'pl':    'Nazwij strefę',
         'zh-cn': '名称区'
     },
-    'Save to device':                 {
+    'Save to device':                                       {
         'en':    'Save to device',
         'de':    'Auf Gerät speichern',
         'ru':    'Сохранить на устройство',
@@ -446,7 +446,7 @@ systemDictionary = {
         'pl':    'Zapisz na urządzeniu',
         'zh-cn': '保存到设备'
     },
-    'Сheck':                          {
+    'Сheck':                                                {
         'en':    'Сheck',
         'de':    'verdammt',
         'ru':    'Проверить',
@@ -458,7 +458,7 @@ systemDictionary = {
         'pl':    'Sprawdź',
         'zh-cn': '检查'
     },
-    'Upload config files':            {
+    'Upload config files':                                  {
         'en':    'Upload config files',
         'de':    'Konfigurationsdateien hochladen',
         'ru':    'Загрузите файлы конфигурации',
@@ -470,7 +470,7 @@ systemDictionary = {
         'pl':    'Prześlij pliki konfiguracyjne',
         'zh-cn': '上传配置文件'
     },
-    'Files':                          {
+    'Files':                                                {
         'en':    'Files',
         'de':    'Dateien',
         'ru':    'Файлы',
@@ -481,5 +481,41 @@ systemDictionary = {
         'es':    'Archivos',
         'pl':    'Pliki',
         'zh-cn': '文件'
-    }
+    },
+    'XML file not found, download project XML file first.': {
+        'en':    'XML file not found, download project XML file first.',
+        'de':    'XML-Datei nicht gefunden, laden Sie zuerst die Projekt-XML-Datei herunter.',
+        'ru':    'XML-файл не найден, сначала загрузите XML-файл проекта.',
+        'pt':    'Arquivo XML não encontrado, primeiro baixe o arquivo XML do projeto.',
+        'nl':    'XML-bestand niet gevonden, download eerst het XML-bestand van het project.',
+        'fr':    'Fichier XML introuvable, téléchargez d\'abord le fichier XML du projet.',
+        'it':    'File XML non trovato, scaricare prima il file XML del progetto.',
+        'es':    'No se encontró el archivo XML, descargue primero el archivo XML del proyecto.',
+        'pl':    'Nie znaleziono pliku XML, najpierw pobierz plik XML projektu.',
+        'zh-cn': '未找到 XML 文件，请先下载项目 XML 文件。'
+    },
+    'Error':                                                {
+        'en':    'Error',
+        'de':    'Fehler',
+        'ru':    'Ошибка',
+        'pt':    'Erro',
+        'nl':    'Fout',
+        'fr':    'Erreur',
+        'it':    'Errore',
+        'es':    'Error',
+        'pl':    'Błąd',
+        'zh-cn': '错误'
+    },
+    'No response, retry the request':                       {
+        'en':    'No response, retry the request',
+        'de':    'Keine Antwort, wiederholen Sie die Anfrage',
+        'ru':    'Нет ответа, повторите запрос',
+        'pt':    'Sem resposta, tente novamente',
+        'nl':    'Geen reactie, probeer het verzoek opnieuw',
+        'fr':    'Pas de réponse, réessayez la demande',
+        'it':    'Nessuna risposta, riprova la richiesta',
+        'es':    'Sin respuesta, vuelva a intentar la solicitud',
+        'pl':    'Brak odpowiedzi, ponów żądanie',
+        'zh-cn': '无响应，重试请求'
+    },
 };

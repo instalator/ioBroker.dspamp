@@ -7,7 +7,7 @@ const xml2js = require('xml2js');
 let adapter, host, port, dsp, timeOutSend, pollTimeout, pingTimer, timeoutTimer, timeOutReconnect, isAlive = false, device = {}, dataFile = 'device.json', iteration = 0,
     pause = 10, permit = false, states = {}, old_states = {};
 const scheme_modules = [];
-const maxdBLevel = 0; // Максимальнуй уровень в дБ
+const maxdBLevel = 0; // Максимальный уровень в дБ
 
 const formats = {
     ExternalGainAlgSlew145X: {
@@ -627,44 +627,46 @@ function getAddressArray(cb){
 }
 
 function iterator(addresses){
-    pollTimeout = setTimeout(() => {
-        pollTimeout && clearTimeout(pollTimeout);
-        pollTimeout = null;
-        pause = 10;
-        const reg = hex16(addresses[iteration]);
-        const name = device.address_map[addresses[iteration]].name;
-        const main = device.address_map[addresses[iteration]].main;
-        send('RD' + reg + '|04', (val) => {
-            if (val !== 'error'){
-                const detailname = device.schematic.modules[main].DetailedName.replace(/[\d.]+$/, '');
-                let id = adapter.namespace + '.control.' + main + '.' + name;
-                if (formats[detailname]){
-                    val = formats[detailname].hexToVal(val);
-                } else {
-                    adapter.log.debug(`WARN! ${adapter.namespace + '.control.' + main + '.' + name} / Read value (${detailname}) not found in formats!\n Send this information to the developer!`);
-                }
-                if (~name.indexOf('NxN')){
-                    const outin = name.slice(name.indexOf('vol_')).replace('vol_', '').split('_');
-                    const _in = outin[1];
-                    const _out = outin[0];
-                    for (const zone in device.zones) {
-                        if (device.zones.hasOwnProperty(zone)){
-                            if (zone !== 'undefined' && device.zones[zone].outputs.length > 0){
-                                for (const zone_out of device.zones[zone].outputs) {
-                                    if (zone_out === _out){
-                                        for (const input in device.inputs) {
-                                            if (device.inputs.hasOwnProperty(input)){
-                                                if (input !== 'undefined' && device.inputs[input].inputs.length > 0){
-                                                    for (const input_in of device.inputs[input].inputs) {
-                                                        if (zone_out === _out && input_in === _in && device.splitter.inputs[input].includes(zone)){
-                                                            states[adapter.namespace + '.inputs.' + input + '.volume'] = val;
-                                                            states[adapter.namespace + '.zones.' + zone + '.volume'] = val;
-                                                            if (val === 0){
-                                                                states[adapter.namespace + '.inputs.' + input + '.mute'] = true;
-                                                                states[adapter.namespace + '.zones.' + zone + '.mute'] = true;
-                                                            } else {
-                                                                states[adapter.namespace + '.inputs.' + input + '.mute'] = false;
-                                                                states[adapter.namespace + '.zones.' + zone + '.mute'] = false;
+    if (device.address_map){
+        pollTimeout = setTimeout(() => {
+            pollTimeout && clearTimeout(pollTimeout);
+            pollTimeout = null;
+            pause = 10;
+            const reg = hex16(addresses[iteration]);
+            const name = device.address_map[addresses[iteration]].name;
+            const main = device.address_map[addresses[iteration]].main;
+            send('RD' + reg + '|04', (val) => {
+                if (val !== 'error'){
+                    const detailname = device.schematic.modules[main].DetailedName.replace(/[\d.]+$/, '');
+                    let id = adapter.namespace + '.control.' + main + '.' + name;
+                    if (formats[detailname]){
+                        val = formats[detailname].hexToVal(val);
+                    } else {
+                        adapter.log.debug(`WARN! ${adapter.namespace + '.control.' + main + '.' + name} / Read value (${detailname}) not found in formats!\n Send this information to the developer!`);
+                    }
+                    if (~name.indexOf('NxN')){
+                        const outin = name.slice(name.indexOf('vol_')).replace('vol_', '').split('_');
+                        const _in = outin[1];
+                        const _out = outin[0];
+                        for (const zone in device.zones) {
+                            if (device.zones.hasOwnProperty(zone)){
+                                if (zone !== 'undefined' && device.zones[zone].outputs.length > 0){
+                                    for (const zone_out of device.zones[zone].outputs) {
+                                        if (zone_out === _out){
+                                            for (const input in device.inputs) {
+                                                if (device.inputs.hasOwnProperty(input)){
+                                                    if (input !== 'undefined' && device.inputs[input].inputs.length > 0){
+                                                        for (const input_in of device.inputs[input].inputs) {
+                                                            if (zone_out === _out && input_in === _in && device.splitter.inputs[input].includes(zone)){
+                                                                states[adapter.namespace + '.inputs.' + input + '.volume'] = val;
+                                                                states[adapter.namespace + '.zones.' + zone + '.volume'] = val;
+                                                                if (val === 0){
+                                                                    states[adapter.namespace + '.inputs.' + input + '.mute'] = true;
+                                                                    states[adapter.namespace + '.zones.' + zone + '.mute'] = true;
+                                                                } else {
+                                                                    states[adapter.namespace + '.inputs.' + input + '.mute'] = false;
+                                                                    states[adapter.namespace + '.zones.' + zone + '.mute'] = false;
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -676,22 +678,22 @@ function iterator(addresses){
                             }
                         }
                     }
+                    states[id] = val;
+                    iteration++;
+                    if (iteration >= addresses.length){
+                        iteration = 0;
+                        setSatates(states);
+                        pause = 2000;
+                    }
+                    if (permit){
+                        iterator(addresses);
+                    }
+                } else {
+                    adapter.log.error('Response read data ' + 'RD' + reg + '|04 = ' + val);
                 }
-                states[id] = val;
-                iteration++;
-                if (iteration >= addresses.length){
-                    iteration = 0;
-                    setSatates(states);
-                    pause = 2000;
-                }
-                if (permit){
-                    iterator(addresses);
-                }
-            } else {
-                adapter.log.error('Response read data ' + 'RD' + reg + '|04 = ' + val);
-            }
-        });
-    }, pause);
+            });
+        }, pause);
+    }
 }
 
 function setSatates(states){
@@ -700,7 +702,6 @@ function setSatates(states){
         if (states.hasOwnProperty(id)){
             if (old_states[id] !== states[id] || states[id] === null){
                 const val = states[id];
-                console.log('val = ' + val);
                 adapter.setState(id, {
                     val: val,
                     ack: true
@@ -750,7 +751,7 @@ const connect = () => {
     dsp.on('open', () => {
         adapter.log.info(dsp.url + ' DSP AMP connected');
         permit = true;
-        if(device.schematic){
+        if (device.schematic){
             pollDevice();
         }
         timeOutSend = setTimeout(() => {
@@ -759,7 +760,9 @@ const connect = () => {
             //send('~');
         }, 5000);
         pingTimer = setInterval(() => {
+            if(dsp){
             dsp.ping('ping'); // Работает только на "ws": "^5.1.0", на последних версиях возращает ошибку.
+        }
         }, 10000);
         timeoutTimer = setInterval(() => {
             if (!isAlive){
@@ -822,17 +825,21 @@ function send(data, cb){
                 cb && cb(msg);
             }
         });
-        dsp.send(data, (e) => {
-            if (e){
-                adapter.log.error('Send command: {' + data + '}, ERROR - ' + e);
-                if (~e.toString().indexOf('CLOSED')){
-                    adapter.setState('info.connection', false, true);
-                    connect();
+        try {
+            dsp.send(data, (e) => {
+                if (e){
+                    adapter.log.error('Send command: {' + data + '}, ERROR - ' + e);
+                    if (~e.toString().indexOf('CLOSED')){
+                        adapter.setState('info.connection', false, true);
+                        connect();
+                    }
+                } else {
+                    adapter.log.debug('Sended command:{' + data + '}');
                 }
-            } else {
-                adapter.log.debug('Sended command:{' + data + '}');
-            }
-        });
+            });
+        } catch (e) {
+            adapter.log.error('Send command: {' + data + '}, ERROR - ' + e);
+        }
     }
 }
 
@@ -1034,7 +1041,7 @@ function main(){
                 try {
                     device = JSON.parse(data);
                     adapter.log.debug('Parse config file ' + dataFile);
-                    if(device.schematic){
+                    if (device.schematic){
                         createObjects(() => {
                             confirmSplitterToObjects(() => {
                                 getAddressesMap(() => {
