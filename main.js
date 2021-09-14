@@ -766,9 +766,9 @@ const connect = () => {
             //send('~');
         }, 5000);
         pingTimer = setInterval(() => {
-            if(dsp){
-            dsp.ping('ping'); // Работает только на "ws": "^5.1.0", на последних версиях возращает ошибку.
-        }
+            if (dsp){
+                dsp.ping('ping'); // Работает только на "ws": "^5.1.0", на последних версиях возращает ошибку.
+            }
         }, 10000);
         timeoutTimer = setInterval(() => {
             if (!isAlive){
@@ -777,7 +777,6 @@ const connect = () => {
                 isAlive = false;
             }
         }, 60000);
-        //cb && cb();
     });
     dsp.on('pong', (msg) => {
         isAlive = true;
