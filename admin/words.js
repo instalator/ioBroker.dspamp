@@ -195,16 +195,16 @@ systemDictionary = {
         'zh-cn': '默认 81'
     },
     'DSP Amplifier configuration':                          {
-        'en':    'DSP Amplifier configuration',
-        'de':    'DSP-Verstärkerkonfiguration',
-        'ru':    'Конфигурация усилителя DSP',
-        'pt':    'Configuração do amplificador DSP',
-        'nl':    'DSP-versterkerconfiguratie',
-        'fr':    'Configuration de l\'amplificateur DSP',
-        'it':    'Configurazione dell\'amplificatore DSP',
-        'es':    'Configuración del amplificador DSP',
-        'pl':    'Konfiguracja wzmacniacza DSP',
-        'zh-cn': 'DSP 放大器配置'
+        'en':    'DSP amplifier configuration map',
+        'de':    'Konfigurationsplan für DSP-Verstärker',
+        'ru':    'Схема конфигурации DSP усилителя',
+        'pt':    'Mapa de configuração do amplificador DSP',
+        'nl':    'Configuratiekaart DSP-versterker',
+        'fr':    'Carte de configuration de l\'amplificateur DSP',
+        'it':    'Mappa di configurazione dell\'amplificatore DSP',
+        'es':    'Mapa de configuración del amplificador DSP',
+        'pl':    'Mapa konfiguracji wzmacniacza DSP',
+        'zh-cn': 'DSP功放配置图'
     },
     'host_name':                                            {
         'en':    'Host name',

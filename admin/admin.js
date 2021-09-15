@@ -504,34 +504,92 @@ function getConfigFromDevice(cb){
 }
 
 function showMap(){
-    let html = '<table>' +
-        '<thead>' +
-        '<tr>' +
-        '<th>Main</th>';
-    for (let i = 0; i < device.num_nodes; i++) {
-        html += '<th>Node ' + i + '</th>';
-    }
-    html += '</tr>' +
-        '</thead>' +
-        '<tbody>' +
-        '<tr>';
-    html += '<td style="padding: 10px 0;"><img src="img/main.png" alt="" style="height: 200px"/>' +
-        '<img src="img/arrow.png" alt="" style="margin-left: 0px;height: 200px"/></td>';
+    let nodes = [], edges = [];
+    let img = '';
+    const container = document.getElementById('map');
+    nodes.push({
+        id:    0,
+        label: 'Main module',
+        image: 'img/main.png',
+        shape: 'image',
+    });
     for (let i = 0; i < device.num_nodes; i++) {
         if (device.modules[i]){
-            html += '<td style="padding: 10px 0;"><img src="img/' + device.modules[i].img + '" alt="" style="height: 200px"/>';
+            img = 'img/' + device.modules[i].img;
         } else {
-            html += '<td style="padding: 10px 0;"><img src="img/undefined.png" alt="" style="height: 200px"/>';
+            img = 'img/undefined.png';
         }
-        if (i < device.num_nodes - 1){
-            html += '<img src="img/arrow.png" alt="" style="margin-left: 0px;height: 200px"/>';
-        }
-        '</td>';
+        nodes.push({
+            id:    i + 1,
+            label: device.modules[i].name,
+            //label: 'Node ' + i,
+            image: img,
+            shape: 'image'
+        });
+        edges.push({
+            from:   i,
+            to:     i + 1,
+            length: 300
+        });
     }
-    html += '</tr>' +
-        '</tbody>' +
-        '</table>';
-    $('#map').html(html);
+
+    const data = {
+        nodes: nodes,
+        edges: edges,
+    };
+    const options = {
+        autoResize:  true,
+        clickToUse:  false,
+        layout:      {
+            hierarchical: {
+                enabled:              true,
+                levelSeparation:      300,
+                blockShifting:        true,
+                edgeMinimization:     true,
+                parentCentralization: true,
+                direction:            'LR',
+                sortMethod:           'hubsize',
+                shakeTowards:         'leaves'
+            },
+        },
+        interaction: {
+            zoomView: true,
+            dragView: true,
+            hover:    true
+        },
+        physics:     {
+            enabled: true
+        },
+        nodes:       {
+            physics: true,
+            size:    90,
+            shadow:  {
+                enabled: true
+            },
+            shape:   'image',
+            font:    {
+                size: 22
+            },
+            mass:    0.1
+        },
+        edges:       {
+            label:  'A2B',
+            arrows: {
+                to:   {
+                    enabled: true
+                },
+                from: {
+                    enabled: true
+                }
+            },
+            smooth: {
+                enabled: true,
+                type:    'continuous',
+                title:   'A2B'
+            }
+        }
+    };
+    const network = new vis.Network(container, data, options);
 }
 
 function sockets(){

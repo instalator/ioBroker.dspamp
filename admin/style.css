@@ -16,6 +16,12 @@
     color: #5a5a5a;
 }
 
+#map {
+    width: 100%;
+    height: 70%;
+    border: 1px solid lightgray;
+}
+
 .adapter-body::after {
     top: 0;
     left: 0;

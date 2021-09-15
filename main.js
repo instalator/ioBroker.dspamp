@@ -57,7 +57,7 @@ const formats = {
             return linear_to_hexFloat(val);
         },
         hexToVal: (val) => {
-            if(!hexFloatToLinear(val)) {
+            if (!hexFloatToLinear(val)){
             }
             return hexFloatToLinear(val); // hexFloat to linear
         }
@@ -165,20 +165,6 @@ const checkType = (str) => {
     }
     return type;
 };
-
-/**
- Чтение регистров:
- RD[uint16_t reg][unsigned short count]  RDFFFF|FF  RD0066|04  //Чтение регистра DSP
- RN[uint8_t node][uint8_t slaveAddr][unsigned char AddrReg] RN00|FF|FF  RN00|6A|0F  //Чтениер регистров слейвов на нодах
- RS[uint8_t node][uint8_t AddrReg]  RSFF|FF  RS00|0D  //Счетние регистров слейва
- RM[uint8_t reg]  RMFF  RM66  //Чтение регистров мастер ноды
-
- Запись в регистры:
- WD[uint16_t reg][bytes]  WFFFF|FFFFFFFF  WD0066|00000001  //Запись в регистр DSP
- WN[uint8_t node][uint8_t slaveAddr][bytes(addr,data)] WN0|FF|FF|00  WN00|6A|21|80  //Запись регистров слейвов на нодах
- WS[uint8_t node][uint8_t AddrReg][uint8_t data]  WSFF|FF|FF  WS00|0D|01  //Запись регистра слейва
- WM[uint8_t reg][uint8_t data]  WMFF|FF  WM66|01  //Запись регистра мастер ноды
- */
 
 function startAdapter(options){
     return adapter = utils.adapter(Object.assign({}, options, {
@@ -758,6 +744,7 @@ const connect = () => {
 
     dsp.on('open', () => {
         adapter.log.info(dsp.url + ' DSP AMP connected');
+        adapter.setState('info.connection', true, true);
         permit = true;
         if (device.schematic){
             pollDevice();
@@ -926,7 +913,7 @@ function setObjects(objName, cb){
 
 function setSubObjectsControl(cb){
     for (const key in device.schematic.modules) {
-        let /*role = 'state', */name = key, /*type = 'number',*/ min = null, max = null, write = true;
+        let name = key, min = null, max = null, write = true;
         subObjects.control[key] = {};
         if (device.schematic.modules[key].ModuleParameter.length > 0){
             device.schematic.modules[key].ModuleParameter.forEach((obj) => {
@@ -939,20 +926,6 @@ function setSubObjectsControl(cb){
                 native.algoname = device.schematic.modules[key].AlgoName;
                 native.detailedname = device.schematic.modules[key].DetailedName.replace(/[\d\.]+$/, '');
                 native.description = device.schematic.modules[key].Description;
-
-                /*
-                            "Name": "ExternalGainAlgSlew145X2slew_mode",
-                            "Type": "FixedPoint",
-                            "Address": 24603,
-                            "Value": "15600",
-                            "Size": 4,
-                            "Data": [
-                              "0x00",
-                              "0x00",
-                              "0x3C",
-                              "0xF0"
-                            ]
-                 */
                 subObjects.control[key][name] = {
                     role:  checkRole(name),
                     name:  name,
@@ -1101,7 +1074,6 @@ function saveDevice(_device, cb){
     } else {
         device = _device;
     }
-    //adapter.log.debug('Сохраняем в файл ' + JSON.stringify(device));
     const data = JSON.stringify(device, null, 2);
     fs.writeFile(dataFile, data, (err) => {
         if (err) adapter.log.error('writeFile Error - ' + err);
@@ -1136,7 +1108,7 @@ function dB_to_hex(dB){
     return float_to_hex(dB_to_float(dB));
 }
 
-function linear_to_hexFloat(linear){ // linear 0-100 // TODO
+function linear_to_hexFloat(linear){
     return dB_to_hex(linear_to_dB(linear));
 }
 
@@ -1148,7 +1120,7 @@ function float_to_dB(float){
     return 20 * Math.log10(float);
 }
 
-function linear_to_dB(linear){ // linear 0-100 // TODO
+function linear_to_dB(linear){
     return /*(maxdBLevel ? maxdBLevel :0) + */ 20.0 * Math.log10(linear / 100.0);  // !!! 20 * Math.log(linear / 100)
     // TODO for 0  20.0 * Math.log10(0/100.0) = -infinity
 }
@@ -1160,7 +1132,7 @@ function hexFloatToLinear(val){
     // OR return Math.round((Math.pow(Math.exp(1), float_to_dB(float) / 20.0) * 100) * 10) / 10;
 }
 
-function linear_to_float(linear){ // linear 0-100 // TODO
+function linear_to_float(linear){
     return dB_to_float(linear_to_dB(linear));
 }
 
