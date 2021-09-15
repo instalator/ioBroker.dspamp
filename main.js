@@ -220,7 +220,7 @@ function startAdapter(options){
                         val = val ? 0 :30; // TODO сохранить значение громкости до мьюта
                     }
                     const zone = name;
-                    device.splitter.zones[zone].forEach((input) => {
+                    device.splitter.zones[zone].forEach((input, i) => {
                         if(device.inputs[input] && device.zones[zone]){
                             const _in = device.inputs[input].inputs;
                             const _out = device.zones[zone].outputs;
@@ -232,6 +232,10 @@ function startAdapter(options){
                                         ack: false
                                     });
                                 });
+                            }
+                        } else {
+                            if (!device.inputs[input]){
+                                device.splitter.zones[zone].splice(i, 1);
                             }
                         }
                     });
