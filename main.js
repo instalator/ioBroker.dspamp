@@ -221,16 +221,18 @@ function startAdapter(options){
                     }
                     const zone = name;
                     device.splitter.zones[zone].forEach((input) => {
-                        const _in = device.inputs[input].inputs;
-                        const _out = device.zones[zone].outputs;
-                        if (_in.length === _out.length){
-                            _in.forEach((item, i) => {
-                                const st = device.mxn.name + 'vol_' + _out[i] + '_' + _in[i];
-                                adapter.setState(adapter.namespace + '.control.' + device.mxn.name_module + '.' + st, {
-                                    val: val,
-                                    ack: false
+                        if(device.inputs[input] && device.zones[zone]){
+                            const _in = device.inputs[input].inputs;
+                            const _out = device.zones[zone].outputs;
+                            if (_in.length === _out.length){
+                                _in.forEach((item, i) => {
+                                    const st = device.mxn.name + 'vol_' + _out[i] + '_' + _in[i];
+                                    adapter.setState(adapter.namespace + '.control.' + device.mxn.name_module + '.' + st, {
+                                        val: val,
+                                        ack: false
+                                    });
                                 });
-                            });
+                            }
                         }
                     });
                 }
