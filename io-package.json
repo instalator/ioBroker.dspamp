@@ -54,7 +54,7 @@
         "main": "main.js",
         "icon": "dspamp.png",
         "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/instalator/ioBroker.dspamp/master/admin/img/dspamp.png",
+        "extIcon": "https://raw.githubusercontent.com/instalator/ioBroker.dspamp/master/admin/dspamp.png",
         "readme": "https://github.com/instalator/ioBroker.dspamp/blob/master/README.md",
         "loglevel": "info",
         "messagebox": true,
