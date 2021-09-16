@@ -1,4 +1,4 @@
-![Logo](admin/dspamp.png)
+![Logo](admin/img/dspamp.png)
 # ioBroker.dspamp
 
 ## dspamp adapter for ioBroker

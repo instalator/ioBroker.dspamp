@@ -28,7 +28,7 @@
     bottom: 0;
     right: 0;
     content: "";
-    background: url(background.png);
+    background: url(img/background.png);
     background-position: top;
     background-repeat: no-repeat;
     background-size: cover;
