@@ -4,9 +4,11 @@ const ws = require('ws');
 const fs = require('fs');
 const xml2js = require('xml2js');
 
-let adapter, host, port, dsp, timeOutSend, pollTimeout, pingTimer, timeoutTimer, timeOutReconnect, isAlive = false, device = {}, dataFile = 'device.json', iteration = 0,
+let adapter, host = '127.0.0.1', port = 81, dsp, timeOutSend, pollTimeout, pingTimer, timeoutTimer, timeOutReconnect, isAlive = false, device = {}, dataFile = 'device.json',
+    iteration = 0,
     pause = 10, permit = false, states = {}, old_states = {};
 const scheme_modules = [];
+
 const maxdBLevel = 0; // Максимальный уровень в дБ
 
 const formats = {
@@ -221,7 +223,7 @@ function startAdapter(options){
                     }
                     const zone = name;
                     device.splitter.zones[zone].forEach((input, i) => {
-                        if(device.inputs[input] && device.zones[zone]){
+                        if (device.inputs[input] && device.zones[zone]){
                             const _in = device.inputs[input].inputs;
                             const _out = device.zones[zone].outputs;
                             if (_in.length === _out.length){
@@ -742,37 +744,42 @@ function getAddressesMap(cb){
 }
 
 const connect = () => {
-    dsp && dsp.close();
+    //dsp && dsp.close();
+    dsp && dsp.terminate();
     adapter.log.info('DSP AMP connect to: ' + host + ':' + port);
     dsp = new ws('ws://' + host + ':' + port, {
-        perMessageDeflate: false
+        //perMessageDeflate: false
     });
 
     dsp.on('open', () => {
         adapter.log.info(dsp.url + ' DSP AMP connected');
         adapter.setState('info.connection', true, true);
         permit = true;
+        isAlive = true;
         if (device.schematic){
             pollDevice();
         }
         timeoutTimer && clearInterval(timeoutTimer);
         pingTimer && clearInterval(pingTimer);
+
         timeOutSend = setTimeout(() => {
             timeOutSend && clearTimeout(timeOutSend);
             timeOutSend = null;
         }, 5000);
+
         pingTimer = setInterval(() => {
             if (dsp){
                 dsp.ping('ping'); // Работает только на "ws": "^5.1.0", на последних версиях возращает ошибку.
             }
-        }, 10000);
+        }, 5000);
+
         timeoutTimer = setInterval(() => {
             if (!isAlive){
-                dsp && dsp.close();
+                dsp && dsp.terminate();
             } else {
                 isAlive = false;
             }
-        }, 60000);
+        }, 6000);
     });
     dsp.on('pong', (msg) => {
         isAlive = true;
