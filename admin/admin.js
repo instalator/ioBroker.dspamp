@@ -50,8 +50,9 @@ function setDeviceSettings(){
     $('#mqtt_topic').val(config.mqtt_topic);
     $('#host_name').val(config.host_name);
     $('#retain').prop('checked', config.retain === 'true');
-    $('#use_mqtt').prop('checked', config.use_mqtt === 'true');
-    if (config.use_mqtt === 'true'){
+    $('#use_mqtt').prop('checked', config.mqtt === 'true');
+    $('#set_topic').prop('checked', config.set === 'true');
+    if (config.mqtt === 'true'){
         $('#mqtt-settings').show();
     } else {
         $('#mqtt-settings').hide();
@@ -456,8 +457,8 @@ function saveConfigToDevice(cb){
         mqtt_topic:     $('#mqtt_topic').val().replaceAll('.', '_'),
         host_name:      $('#host_name').val(),
         retain:         $('#retain').prop('checked').toString(),
-        set_topic:      $('#set_topic').prop('checked').toString(),
-        use_mqtt:       $('#use_mqtt').prop('checked').toString(),
+        set:            $('#set_topic').prop('checked').toString(),
+        mqtt:           $('#use_mqtt').prop('checked').toString(),
     };
     sendToadapter('saveConfigToDevice', {data}, function (msg){
         if (!msg.error){
@@ -521,15 +522,15 @@ function showMap(){
         }
         nodes.push({
             id:    i + 1,
-            label: device.modules[i].name,
-            //label: 'Node ' + i,
+            label: device.modules[i] ? device.modules[i].name :'Undefined module',
             image: img,
             shape: 'image'
         });
         edges.push({
             from:   i,
             to:     i + 1,
-            length: 300
+            //length: 300,
+            smooth: {title: 'A2B'}
         });
     }
 
@@ -584,8 +585,7 @@ function showMap(){
             },
             smooth: {
                 enabled: true,
-                type:    'continuous',
-                title:   'A2B'
+                type:    'continuous'
             }
         }
     };

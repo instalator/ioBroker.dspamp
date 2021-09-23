@@ -376,6 +376,7 @@ function delFile(filename, cb){
 }
 
 function parseXMLFiles(xmlFiles, cb){
+    adapter.log.debug('Start parseXMLFiles');
     const parser = new xml2js.Parser();
     const dir = utils.controllerDir + '/' + adapter.systemConfig.dataDir + adapter.namespace.replace('.', '_') + '/';
     xmlFiles.forEach((filename) => {
@@ -398,6 +399,7 @@ function parseXMLFiles(xmlFiles, cb){
 }
 
 function checkXMLConfigFile(obj, cb){
+    adapter.log.debug('Start checkXMLConfigFile');
     if (obj.hasOwnProperty('Schematic') && obj.Schematic.hasOwnProperty('IC') && obj.Schematic.IC[0].PartNumber[0] === 'ADAU1452'){
         cb && cb(obj.Schematic.IC[0].Module);
     } else {
@@ -455,6 +457,7 @@ function parseSchematicModules(data, cb){
 }
 
 function checkXmlProject(cb){
+    adapter.log.debug('Start checkXmlProject');
     readDir((res) => {
         const xmlFiles = [];
         res.forEach((item) => {
@@ -535,6 +538,7 @@ function getConfig(_host, cb){
 }
 
 function checkNumNodes(i, nodes, cb){
+    adapter.log.debug('Start checkNumNodes');
     send('RS' + i + '|02', (data) => {
         i++;
         if (data === 'ad'){
@@ -547,6 +551,7 @@ function checkNumNodes(i, nodes, cb){
 }
 
 function checkModuleFromNodes(i, nodes, cb){
+    adapter.log.debug('Start checkModuleFromNodes');
     send('RN' + nodes + '|' + modules[i].i2cAddress + '|' + modules[i].checkReg, (data) => { //RN00|6A|0F
         if (data !== '00'){
             scheme_modules[nodes] = {
@@ -570,6 +575,7 @@ function checkModuleFromNodes(i, nodes, cb){
 }
 
 function discovery(cb){
+    adapter.log.debug('Start discovery');
     send('RDF405|02', () => {
         checkNumNodes(0, -1, (nodes) => {
             device.num_nodes = nodes + 1;
@@ -584,21 +590,25 @@ function discovery(cb){
 }
 
 function getConfigFromDevice(_host, _port, cb){
-    adapter.log.debug('getConfigFromDevice ');
     if (!_host){
         _host = host;
     }
     if (!_port){
         _port = port;
     }
-    adapter.log.info('DSP AMP connect to: ' + _host + ':' + _port);
+    pingTimer && clearInterval(pingTimer);
+    timeoutTimer && clearInterval(timeoutTimer);
+    timeOutSend && clearTimeout(timeOutSend);
+    dsp = null;
+    adapter.log.info('getConfigFromDevice/ DSP AMP connect to: ' + _host + ':' + _port);
     getConfig(_host, () => {
-        dsp && dsp.close();
+        //dsp && dsp.close();
+        dsp && dsp.terminate();
         dsp = new ws('ws://' + _host + ':' + _port, {
-            perMessageDeflate: false
+            //perMessageDeflate: false
         });
         dsp.on('open', () => {
-            adapter.log.debug(dsp.url + ' DSP AMP connected');
+            adapter.log.debug('getConfigFromDevice ' + dsp.url + ' DSP AMP connected');
             discovery(cb);
         });
         dsp.on('error', (e) => {
@@ -609,7 +619,7 @@ function getConfigFromDevice(_host, _port, cb){
         dsp.on('close', (e) => {
             adapter.log.debug('getConfigFromDevice WS CLOSED, CODE - ' + e);
             dsp && dsp.close();
-            cb && cb('ERROR! getConfigFromDevice WS CLOSE, CODE - ' + e);
+            //cb && cb('ERROR! getConfigFromDevice WS CLOSE, CODE - ' + e);
         });
     });
 }
@@ -775,6 +785,7 @@ const connect = () => {
 
         timeoutTimer = setInterval(() => {
             if (!isAlive){
+                adapter.log.debug(dsp.url + ' not receive a pong');
                 dsp && dsp.terminate();
             } else {
                 isAlive = false;
@@ -783,7 +794,7 @@ const connect = () => {
     });
     dsp.on('pong', (msg) => {
         isAlive = true;
-        adapter.log.debug(dsp.url + ' receive a pong : ' + msg);
+        //adapter.log.debug(dsp.url + ' receive a pong : ' + msg);
     });
 
     /*dsp.on('message', (msg) => {
@@ -804,7 +815,7 @@ const connect = () => {
         pingTimer && clearInterval(pingTimer);
         timeoutTimer && clearInterval(timeoutTimer);
         timeOutSend && clearTimeout(timeOutSend);
-        adapter.log.debug('ERROR! WS CLOSE, CODE - ' + e);
+        adapter.log.error('ERROR! WS CLOSE, CODE - ' + e);
         adapter.log.debug('DSP reconnect after 10 seconds');
         adapter.setState('info.connection', false, true);
         timeOutReconnect = setTimeout(() => {
@@ -817,7 +828,7 @@ const connect = () => {
 function send(data, cb){
     if (dsp){
         dsp.once('message', (msg) => {
-            adapter.log.debug('Response data - ' + msg);
+            //adapter.log.debug('Response data - ' + msg);
             permit = true;
             if (msg === 'Connected'){
                 isAlive = true;
@@ -840,7 +851,7 @@ function send(data, cb){
                         //connect();
                     }
                 } else {
-                    adapter.log.debug('Sended command:{' + data + '}');
+                    //adapter.log.debug('Sended command:{' + data + '}');
                 }
             });
         } catch (e) {
@@ -1067,21 +1078,25 @@ function main(){
 }
 
 function getDeviceFile(cb){
+    adapter.log.debug('Start getDeviceFile');
     fs.readFile(dataFile, (err, data) => {
         if (!err){
             try {
                 device = JSON.parse(data);
                 cb && cb();
-            } catch (err) {
-                cb && cb(err);
+            } catch (e) {
+                adapter.log.error('getDeviceFile parse Error - ' + e);
+                cb && cb(e);
             }
         } else {
+            adapter.log.error('getDeviceFile readFile Error - ' + err);
             cb && cb(err);
         }
     });
 }
 
 function saveDevice(_device, cb){
+    adapter.log.debug('Start saveDevice');
     if (!cb){
         cb = _device;
     } else {
