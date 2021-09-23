@@ -12,6 +12,7 @@ function load(settings, onChange){
         if (!alive){
             showMessage(_('Adapter is not running'), _('Error'), 'error_outline');
         } else {
+            M && M.updateTextFields();
             getConfigFromDevice(function (){
                 checkXmlProject(() => {
                     getDeviceFile(function (){
@@ -130,6 +131,19 @@ $(document).ready(function (){
 
     $('#save_to_dev-btn').click(function (){
         saveConfigToDevice();
+    });
+
+    $('#reboot_dev-btn').click(function (){
+        sendToadapter('reboot', {}, function (msg){
+            showMessage(_(''), _('Successfully'), '');
+            //cb && cb();
+        });
+    });
+    $('#reset_agree').click(function (){
+        sendToadapter('reset', {}, function (msg){
+            showMessage(_(''), _('Successfully'), '');
+            //cb && cb();
+        });
     });
 
     $('#confirm-add-zone-btn').click(function (){

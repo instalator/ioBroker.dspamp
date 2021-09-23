@@ -153,11 +153,23 @@
             </div>
             <div class="row">
                 <div class="col s12">
-                    <div class="col s2 input-field">
+                    <div class="col input-field">
                         <button id="save_to_dev-btn" class="btn waves-effect waves-light" type="submit" name="action">
                             <span class="translate">Save to device</span>
                             <i class="material-icons right">send</i>
                         </button>
+                    </div>
+                    <div class="col input-field">
+                        <a id="reboot_dev-btn" class="btn waves-effect orange darken-1 waves-light">
+                            <span class="translate">Reboot device</span>
+                            <i class="material-icons right">send</i>
+                        </a>
+                    </div>
+                    <div class="col input-field">
+                        <a id="reset_dev-btn" class="btn modal-trigger waves-effect red lighten-2 waves-light" data-target="reset_modal">
+                            <span class="translate">Reset device</span>
+                            <i class="material-icons right">send</i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -251,6 +263,18 @@
             </div>
         </div>
     </div>
+
+    <div id="reset_modal" class="modal">
+        <div class="modal-content">
+            <h4 class="translate">ATTENTION!</h4>
+            <span class="translate">Are you sure you want to reset all settings DSP amplifier?</span>
+        </div>
+        <div class="modal-footer">
+            <a class="modal-close waves-effect waves-red btn-flat"><span class="translate">Cancel</span></a>
+            <a class="reset_agree modal-close waves-effect waves-green btn-flat red lighten-4"><span class="translate">Reset</span></a>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>

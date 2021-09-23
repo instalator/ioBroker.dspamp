@@ -310,6 +310,26 @@ function startAdapter(options){
                         }
                     });
                 }
+                if (obj.command === 'reboot'){
+                    adapter.log.debug('Reboot device');
+                    send('Q', (res) => {
+                        if (res === 'OK'){
+                            obj.callback && adapter.sendTo(obj.from, obj.command, {result: res}, obj.callback);
+                        } else {
+                            obj.callback && adapter.sendTo(obj.from, obj.command, {error: res}, obj.callback);
+                        }
+                    });
+                }
+                if (obj.command === 'reset'){
+                    adapter.log.debug('Reset config device');
+                    send('T', (res) => {
+                        if (res === 'OK'){
+                            obj.callback && adapter.sendTo(obj.from, obj.command, {result: res}, obj.callback);
+                        } else {
+                            obj.callback && adapter.sendTo(obj.from, obj.command, {error: res}, obj.callback);
+                        }
+                    });
+                }
                 if (obj.command === 'checkXmlProject'){
                     checkXmlProject((e) => {
                         if (!e){
@@ -516,7 +536,7 @@ function readDir(cb){
     });
 }
 
-function getConfig(_host, cb){
+function getConfig(_host, _cb, cb){
     const http = require('http');
     const options = {
         host: _host,
@@ -529,8 +549,13 @@ function getConfig(_host, cb){
         });
         data.on('end', () => {
             adapter.log.debug('getConfig - ' + str);
-            device.config = JSON.parse(str);
-            cb && cb(true);
+            try {
+                device.config = JSON.parse(str);
+                cb && cb(true);
+            } catch (e) {
+                adapter.log.error('getConfig parse Error - ' + e);
+                _cb && _cb(e);
+            }
         });
         data.on('error', (e) => {
             adapter.log.debug('getConfig Error - ' + e);
@@ -607,7 +632,7 @@ function getConfigFromDevice(_host, _port, cb){
     dsp && dsp.removeAllListeners();
     dsp && dsp.close();
     adapter.log.info('getConfigFromDevice/ DSP AMP connect to: ' + _host + ':' + _port);
-    getConfig(_host, () => {
+    getConfig(_host, cb,() => {
         dsp = new ws('ws://' + _host + ':' + _port, {});
         dsp.on('open', () => {
             adapter.log.debug('getConfigFromDevice ' + dsp.url + ' DSP AMP connected');
