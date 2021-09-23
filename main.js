@@ -176,6 +176,7 @@ function startAdapter(options){
         unload:       (callback) => {
             try {
                 saveDevice();
+                dsp && dsp.close();
                 timeOutSend && clearTimeout(timeOutSend);
                 timeOutReconnect && clearTimeout(timeOutReconnect);
                 pollTimeout && clearTimeout(pollTimeout);
@@ -587,7 +588,6 @@ function discovery(cb){
             checkModuleFromNodes(0, 0, () => {
                 device.modules = scheme_modules;
                 saveDevice();
-                //dsp && dsp.close();
                 cb && cb();
             });
         });
@@ -604,14 +604,11 @@ function getConfigFromDevice(_host, _port, cb){
     pingTimer && clearInterval(pingTimer);
     timeoutTimer && clearInterval(timeoutTimer);
     timeOutSend && clearTimeout(timeOutSend);
-    dsp = null;
+    dsp && dsp.removeAllListeners();
+    dsp && dsp.close();
     adapter.log.info('getConfigFromDevice/ DSP AMP connect to: ' + _host + ':' + _port);
     getConfig(_host, () => {
-        //dsp && dsp.close();
-        dsp && dsp.terminate();
-        dsp = new ws('ws://' + _host + ':' + _port, {
-            //perMessageDeflate: false
-        });
+        dsp = new ws('ws://' + _host + ':' + _port, {});
         dsp.on('open', () => {
             adapter.log.debug('getConfigFromDevice ' + dsp.url + ' DSP AMP connected');
             discovery(cb);
@@ -623,8 +620,7 @@ function getConfigFromDevice(_host, _port, cb){
         });
         dsp.on('close', (e) => {
             adapter.log.debug('getConfigFromDevice WS CLOSED, CODE - ' + e);
-            dsp && dsp.close();
-            //cb && cb('ERROR! getConfigFromDevice WS CLOSE, CODE - ' + e);
+            cb && cb('ERROR! getConfigFromDevice WS CLOSE, CODE - ' + e);
         });
     });
 }
@@ -759,13 +755,9 @@ function getAddressesMap(cb){
 }
 
 const connect = () => {
-    //dsp && dsp.close();
-    dsp && dsp.terminate();
+    dsp && dsp.close();
     adapter.log.info('DSP AMP connect to: ' + host + ':' + port);
-    dsp = new ws('ws://' + host + ':' + port, {
-        //perMessageDeflate: false
-    });
-
+    dsp = new ws('ws://' + host + ':' + port, {});
     dsp.on('open', () => {
         adapter.log.info(dsp.url + ' DSP AMP connected');
         adapter.setState('info.connection', true, true);
@@ -776,18 +768,15 @@ const connect = () => {
         }
         timeoutTimer && clearInterval(timeoutTimer);
         pingTimer && clearInterval(pingTimer);
-
         timeOutSend = setTimeout(() => {
             timeOutSend && clearTimeout(timeOutSend);
             timeOutSend = null;
         }, 5000);
-
         pingTimer = setInterval(() => {
             if (dsp){
                 dsp.ping('ping'); // Работает только на "ws": "^5.1.0", на последних версиях возращает ошибку.
             }
         }, 5000);
-
         timeoutTimer = setInterval(() => {
             if (!isAlive){
                 adapter.log.debug(dsp.url + ' not receive a pong');
@@ -801,18 +790,6 @@ const connect = () => {
         isAlive = true;
         //adapter.log.debug(dsp.url + ' receive a pong : ' + msg);
     });
-
-    /*dsp.on('message', (msg) => {
-        adapter.log.debug('Response message - ' + msg);
-        isAlive = true;
-        if (msg === 'Connected'){
-            adapter.setState('info.connection', true, true);
-        }
-        if (msg !== 'OK' && msg !== 'Connected'){
-            //parse(msg);
-        }
-    });*/
-
     dsp.on('error', (e) => {
         adapter.log.debug('Error WS - ' + e);
     });
