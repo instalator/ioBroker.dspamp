@@ -447,7 +447,6 @@ function preloader(state){
 }
 
 function saveConfigToDevice(cb){
-    preloader(true);
     const data = { // TODO Привести к соответсвию обьекта в прошивке и в адаптере.
         mqtt_server:    $('#mqtt_server').val(),
         mqtt_port:      $('#mqtt_port').val(),
@@ -461,9 +460,8 @@ function saveConfigToDevice(cb){
         mqtt:           $('#use_mqtt').prop('checked').toString(),
     };
     sendToadapter('saveConfigToDevice', {data}, function (msg){
-        if (!msg.error){
-            cb && cb();
-        }
+        showMessage(_(''), _('Successfully'), '');
+        cb && cb();
     });
 }
 

@@ -302,7 +302,11 @@ function startAdapter(options){
                 }
                 if (obj.command === 'saveConfigToDevice'){
                     saveConfigToDevice(obj.message.data, (msg) => {
-                        obj.callback && adapter.sendTo(obj.from, obj.command, {result: msg}, obj.callback);
+                        if (msg === 'OK'){
+                            obj.callback && adapter.sendTo(obj.from, obj.command, {result: msg}, obj.callback);
+                        } else {
+                            obj.callback && adapter.sendTo(obj.from, obj.command, {error: msg}, obj.callback);
+                        }
                     });
                 }
                 if (obj.command === 'checkXmlProject'){
@@ -361,8 +365,9 @@ function writeFile(filename, data, cb){
 }
 
 function saveConfigToDevice(data, cb){
-    send(JSON.stringify(data), () => {
-        cb && cb('ok');
+    send(JSON.stringify(data), (res) => {
+        adapter.log.debug('Response save Config To Device - ' + res);
+        cb && cb(res);
     });
 }
 
@@ -582,7 +587,7 @@ function discovery(cb){
             checkModuleFromNodes(0, 0, () => {
                 device.modules = scheme_modules;
                 saveDevice();
-                dsp && dsp.close();
+                //dsp && dsp.close();
                 cb && cb();
             });
         });

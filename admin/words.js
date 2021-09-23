@@ -518,4 +518,16 @@ systemDictionary = {
         'pl':    'Brak odpowiedzi, ponów żądanie',
         'zh-cn': '无响应，重试请求'
     },
+    'Successfully':                                         {
+        'en':    'Successfully',
+        'de':    'Erfolgreich',
+        'ru':    'Успешно',
+        'pt':    'Com sucesso',
+        'nl':    'Met succes',
+        'fr':    'Avec succès',
+        'it':    'Con successo',
+        'es':    'Exitosamente',
+        'pl':    'Z powodzeniem',
+        'zh-cn': '成功地'
+    },
 };
