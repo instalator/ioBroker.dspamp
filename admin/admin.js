@@ -249,6 +249,7 @@ function showMapZoneOtputsContainer(cb){
                 '       <div class="content lmdd-block"><i class="material-icons handle" >volume_up</i>' +
                 '<span >Output_' + item + '</span>' +
                 /*'            <div class="task">Output_' + item + '</div>\n' +*/
+                '<a class="" onclick="beepZone(\'' + item + '\')"  title="Play a beep on this output"><i class="beepZone material-icons cyan-text text-darken-4 Tiny" style="cursor:pointer;vertical-align: middle;position: absolute;float: right;right: 5px;top: 14px;">hearing</i></a>' +
                 '       </div>' +
                 '    </div>';
         });
@@ -301,6 +302,7 @@ function drawMapZone(){
                         html += '<div class="z-depth-3 item col s12 ">\n' +
                             '       <div class="content lmdd-block"><i class="material-icons handle">volume_up</i>' +
                             '<span>Output_' + item + '</span>' + //launch speaker speaker_group headset
+                            '<a class="" onclick="beepZone(\'' + item + '\')" title="Play a beep on this output"><i class="beepZone material-icons cyan-text text-darken-4 Tiny" style="cursor:pointer;vertical-align: middle;position: absolute;float: right;right: 5px;top: 14px;">hearing</i></a>' +
                             '       </div>' +
                             '    </div>';
                     });
@@ -337,6 +339,10 @@ function drawMapInput(){
         }
         $('#map-inputs').append('</div></div>');
     });
+}
+
+function beepZone(zone){
+    sendToadapter('beepZone', {zone}, function (msg){});
 }
 
 function delZone(zone){

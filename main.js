@@ -368,7 +368,32 @@ function startAdapter(options){
                         obj.callback && adapter.sendTo(obj.from, obj.command, msg, obj.callback);
                     });
                 }
-
+                if (obj.command === 'beepZone'){
+                    const zone = obj.message.zone;
+                    const maxInput = Math.max.apply(null, device.mxn.input.list_array);
+                    let regMxn, regBeep;
+                    for (const key in device.address_map) {
+                        if (device.address_map[key].name === device.mxn.name + 'vol_' + zone + '_' + maxInput){
+                            regMxn = hex16(key);
+                        }
+                        if (device.address_map[key].name === 'BeepAlg_S3001enable'){ //TODO жестко завязано на имя модуля
+                            regBeep = hex16(key);
+                        }
+                    }
+                    if (regMxn && regBeep){
+                        send('WD' + regMxn + '|01000000', () => {
+                            send('WD' + regBeep + '|01000000', () => {
+                                setTimeout(() => {
+                                    send('WD' + regBeep + '|00000000', () => {
+                                        send('WD' + regMxn + '|00000001', () => {
+                                        });
+                                    });
+                                }, 500);
+                            });
+                        });
+                    }
+                    obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'OK'}, obj.callback);
+                }
             } else {
                 adapter.log.debug(`message x ${obj.command}`);
             }
@@ -452,7 +477,11 @@ function parseSchematicModules(data, cb){
             module.Algorithm[0].ModuleParameter[i].Name = item.Name[0];
             module.Algorithm[0].ModuleParameter[i].Type = item.Type[0];
             module.Algorithm[0].ModuleParameter[i].Address = parseInt(item.Address[0], 10);
-            module.Algorithm[0].ModuleParameter[i].Value = item.Value[0];
+            if (item.Type === 'HexArray'){
+                module.Algorithm[0].ModuleParameter[i].Value = item.Data[0];
+            } else {
+                module.Algorithm[0].ModuleParameter[i].Value = item.Value[0];
+            }
             module.Algorithm[0].ModuleParameter[i].Size = parseInt(item.Size[0], 10);
             module.Algorithm[0].ModuleParameter[i].Data = item.Data[0].replace(/\s/g, '').split(',').filter(Boolean)/*.map(Number)*/;
         });
@@ -632,7 +661,7 @@ function getConfigFromDevice(_host, _port, cb){
     dsp && dsp.removeAllListeners();
     dsp && dsp.close();
     adapter.log.info('getConfigFromDevice/ DSP AMP connect to: ' + _host + ':' + _port);
-    getConfig(_host, cb,() => {
+    getConfig(_host, cb, () => {
         dsp = new ws('ws://' + _host + ':' + _port, {});
         dsp.on('open', () => {
             adapter.log.debug('getConfigFromDevice ' + dsp.url + ' DSP AMP connected');
@@ -669,6 +698,19 @@ function iterator(addresses){
             const main = device.address_map[addresses[iteration]].main;
             send('RD' + reg + '|04', (val) => {
                 if (val !== 'error'){
+                    /*if(!device.schematic.modules[main]){
+                        delete device.address_map[addresses[iteration]];
+                        iteration++;
+                        if (iteration >= addresses.length){
+                            iteration = 0;
+                            setSatates(states);
+                            pause = 2000;
+                        }
+                        if (permit){
+                            iterator(addresses);
+                        }
+                        return;
+                    }*/
                     const detailname = device.schematic.modules[main].DetailedName.replace(/[\d.]+$/, '');
                     let id = adapter.namespace + '.control.' + main + '.' + name;
                     if (formats[detailname]){
@@ -760,9 +802,9 @@ function pollDevice(){
 }
 
 function getAddressesMap(cb){
-    if (!device.address_map){
-        device.address_map = {};
-    }
+    //if (!device.address_map){
+    device.address_map = {};
+    //}
     for (const key in device.schematic.modules) {
         const obj = device.schematic.modules[key];
         if (obj.ModuleParameter.length > 0){
