@@ -44,11 +44,13 @@ DSP zone amplifier control by instalator
 
 ### TODO
 
+- Режим адаптера в качестве моста sigma TCP/IP
 - Загрузка проекта SigmaStudio на DSP
 - Пресеты проектов для загрузки по кнопке
 - Виджеты для VIS
 - Статусы и управление триггерами
 - Выбор наименования основного NxNMixer (select)
+- Бэкап файла девайс
 
 ## Changelog
 

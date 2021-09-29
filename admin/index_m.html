@@ -59,6 +59,12 @@
                         </button>
                     </div>
                     <div class="col input-field right">
+                        <a id="sigmaserver-btn" class="btn modal-trigger waves-effect waves-light" href="#modalsigma">
+                            <span class="translate">sigmaTCPi</span>
+                            <i class="material-icons right">send</i>
+                        </a>
+                    </div>
+                    <div class="col input-field right">
                         <a id="upload-btn" class="btn waves-effect waves-light modal-trigger right" href="#modalupload">
                             <span class="translate">Upload config files</span>
                             <i class="material-icons right">file_upload</i>
@@ -203,6 +209,38 @@
                 <span class="translate">close</span>
                 <i class="material-icons left">close</i>
             </a>
+        </div>
+    </div>
+    <div class="modal modalsigma modal-fixed-footer" id="modalsigma">
+        <div id="modal-sigma-content" class="modal-content">
+            <div class="row">
+                <div class="col">
+                    <h6><span class="translate">SigmaStudio TCPi gate</span></h6>
+                </div>
+                <div class="col right">
+                    <a style="margin-top: 3px;" id="server-state-button" class="btn-floating waves-effect waves-light red hoverable right"
+                       href="#"><i class="material-icons right">sync_disabled</i></a>
+                </div>
+            </div>
+            <div class="row">
+                <span class="translate">SigmaStudio TCPi log</span>
+                <div id="sigmalog" class="col s12">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="row">
+                <div class="col">
+                    <span class="translate">Server: </span><i class="server-isrunning material-icons Tiny red-text">brightness_1</i></a>
+                </div>
+                <div class="col">
+                    <span class="translate">SigmaStudio: </span><i class="sigma-isrunning material-icons Tiny red-text">brightness_1</i></a>
+                </div>
+                <a class="modal-close btn waves-effect waves-green">
+                    <span class="translate">close</span>
+                    <i class="material-icons left">close</i>
+                </a>
+            </div>
         </div>
     </div>
     <div class="modal modaladd-zone modal-fixed-footer" id="modaladd-zone">

@@ -3,10 +3,15 @@ const utils = require('@iobroker/adapter-core');
 const ws = require('ws');
 const fs = require('fs');
 const xml2js = require('xml2js');
+const splice = require('buffer-splice');
+const net = require('net');
+const client = new net.Socket();
 
 let adapter, host = '127.0.0.1', port = 81, dsp, timeOutSend, pollTimeout, pingTimer, timeoutTimer, timeOutReconnect, isAlive = false, device = {}, dataFile = 'device.json',
     iteration = 0,
     pause = 10, permit = false, states = {}, old_states = {};
+let timeoutSigma, timeoutSendSigma, timeSendSigma = 1, _socket, server, next = true;
+let buffer_sigma = Buffer.from([]);
 const scheme_modules = [];
 
 const maxdBLevel = 0; // Максимальный уровень в дБ
@@ -177,6 +182,8 @@ function startAdapter(options){
             try {
                 saveDevice();
                 dsp && dsp.close();
+                _socket && _socket.destroy();
+                server && server.close();
                 timeOutSend && clearTimeout(timeOutSend);
                 timeOutReconnect && clearTimeout(timeOutReconnect);
                 pollTimeout && clearTimeout(pollTimeout);
@@ -213,7 +220,7 @@ function startAdapter(options){
                                     }
                                 });
                             } else {
-                                adapter.log.debug(`WARN! ${id} / Send control (${obj.native.detailedname}) not found in formats!\n Native obj = ${JSON.stringify(obj.native)} \nSend this information to the developer!`);
+                                //adapter.log.debug(`WARN! ${id} / Send control (${obj.native.detailedname}) not found in formats!\n Native obj = ${JSON.stringify(obj.native)} \nSend this information to the developer!`);
                             }
                         }
                     });
@@ -289,6 +296,11 @@ function startAdapter(options){
                                 });
                             }
                         });
+                    }
+                }
+                if (type_cmd === 'sigmaTCP'){
+                    if (cmd === 'running'){
+                        sigmaTCPServer(val);
                     }
                 }
             }
@@ -394,11 +406,126 @@ function startAdapter(options){
                     }
                     obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'OK'}, obj.callback);
                 }
+                if (obj.command === 'sigmaTCP'){
+                    adapter.setState('sigmaTCP.running', !!obj.message.val, false);
+                    obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'OK'}, obj.callback);
+                }
             } else {
                 adapter.log.debug(`message x ${obj.command}`);
             }
         }
     }));
+}
+
+function parseSigma(){
+    if (next){
+        let packet, lenPacket, lenData, data, addr, mode;
+        if (buffer_sigma[0] === 0x09){
+            mode = 'Block Write';
+            lenPacket = buffer_sigma.slice(3, 7).readUInt32BE(0);
+            packet = buffer_sigma.slice(0, lenPacket);
+            buffer_sigma = splice(buffer_sigma, 0, lenPacket);
+            lenData = packet.slice(8, 12).readUInt32BE(0);
+            data = packet.slice(14, lenPacket).toString('hex').toUpperCase();
+            addr = packet.slice(12, 14).toString('hex').toUpperCase();
+        }
+        if (buffer_sigma[0] === 0x0A){
+            mode = 'Read Request';
+            lenPacket = buffer_sigma.slice(1, 5).readUInt32BE(0);
+            packet = buffer_sigma.slice(0, lenPacket);
+            buffer_sigma = splice(buffer_sigma, 0, lenPacket);
+            lenData = packet.slice(6, 10).readUInt32BE(0);
+            data = packet.slice(12, lenPacket).toString('hex').toUpperCase();
+            addr = packet.slice(10, 12).toString('hex').toUpperCase();
+        }
+        if (addr === '0034'){ //Erase EEPROM
+            timeSendSigma = 5000;
+        } else {
+            timeSendSigma = 1;
+        }
+        if (packet){
+            next = false;
+            adapter.log.debug('Mode: ' + mode + ' Address: 0x' + addr + ' Bytes: ' + lenData + ' Data: ' + data);
+            adapter.setState('sigmaTCP.log', 'Mode: ' + mode + ' Address: 0x' + addr + ' Bytes: ' + lenData + ' Data: ' + data, true);
+            //adapter.log.debug('Send lenPacket: ' + lenPacket + ' lenData: ' + lenData + ' Data: ' + Buffer.from(packet).toString("hex"));
+            adapter.log.debug('client.write(' + packet.toString('hex').toUpperCase() + ')');
+            client && client.write(packet);
+        }
+    }
+}
+
+function sigmaTCPClient(){
+    client.connect(8086, adapter.config.host, () => {
+        adapter.log.info(`Sigma TCP Client Connected to amplifier`);
+        adapter.setState('sigmaTCP.connected', true, true);
+    });
+    client.on('data', (data) => {
+        //adapter.log.debug('client data - ' + data);
+        if (data.toString() === '>'){
+            adapter.log.debug('Send next packet to amplifier');
+            timeoutSendSigma = setTimeout(() => {
+                next = true;
+            }, timeSendSigma);
+        } else {
+            _socket && _socket.write(data);
+        }
+    });
+    client.on('error', (e) => {
+        adapter.log.error(`Connection error ${e}`);
+    });
+    client.on('close', () => {
+        adapter.log.info(`Sigma TCP Client Connection closed`);
+        adapter.setState('sigmaTCP.connected', false, true);
+    });
+}
+
+function sigmaTCPServer(state){
+    if (state){
+        const sigma_port = 8086, sigma_host = '127.0.0.1';
+        server = net.createServer((socket) => {
+            _socket = socket;
+            sigmaTCPClient();
+            socket.on('data', (data) => {
+                buffer_sigma = Buffer.concat([buffer_sigma, data]);
+                timeoutSigma && clearInterval(timeoutSigma);
+                timeoutSendSigma && clearTimeout(timeoutSendSigma);
+                timeoutSigma = setInterval(() => {
+                    if (buffer_sigma.length > 0){
+                        parseSigma();
+                    }
+                }, 100);
+                timeoutSendSigma = setTimeout(() => {
+                    next = true;
+                }, 10000);
+            });
+            socket.on('connect', () => {
+                adapter.log.debug(`sigmaTCP Socket connect`);
+            });
+            socket.on('close', () => {
+                adapter.log.debug(`sigmaTCP socket closed`);
+                timeoutSigma && clearInterval(timeoutSigma);
+                client && client.end();
+                adapter.setState('sigmaTCP.running', false, true);
+            });
+        }).on('error', (e) => {
+            adapter.log.error(`sigmaTCP Error: ${e}`);
+            timeoutSigma && clearInterval(timeoutSigma);
+            client && client.end();
+            adapter.setState('sigmaTCP.running', false, true);
+        }).on('close', () => {
+            adapter.log.debug(`SigmaStudio server closed`);
+            adapter.setState('sigmaTCP.running', false, true);
+        });
+        server.listen(sigma_port, sigma_host, () => {
+            buffer_sigma = Buffer.from([]);
+            adapter.log.debug(`Opened TCP/IP SigmaStudio server on ${JSON.stringify(server.address())}`);
+            adapter.setState('sigmaTCP.log', `Opened server on ${JSON.stringify(server.address())}`, true);
+            adapter.setState('sigmaTCP.running', true, true);
+        });
+    } else {
+        _socket && _socket.destroy();
+        server && server.close();
+    }
 }
 
 function writeFile(filename, data, cb){
@@ -716,7 +843,7 @@ function iterator(addresses){
                     if (formats[detailname]){
                         val = formats[detailname].hexToVal(val);
                     } else {
-                        adapter.log.debug(`WARN! ${adapter.namespace + '.control.' + main + '.' + name} / Read value (${detailname}) not found in formats!\n Send this information to the developer!`);
+                        //adapter.log.debug(`WARN! ${adapter.namespace + '.control.' + main + '.' + name} / Read value (${detailname}) not found in formats!\n Send this information to the developer!`);
                     }
                     if (~name.indexOf('NxN')){
                         const outin = name.slice(name.indexOf('vol_')).replace('vol_', '').split('_');
@@ -895,7 +1022,7 @@ function send(data, cb){
             dsp.send(data, (e) => {
                 if (e){
                     adapter.log.error('Send command: {' + data + '}, ERROR - ' + e);
-                    if (~e.toString().indexOf('CLOSED')){
+                    if (~e.toString().indexOf('CLOSED') || ~e.toString().indexOf('CONNECTING')){
                         adapter.setState('info.connection', false, true);
                         //connect();
                     }

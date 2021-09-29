@@ -85,7 +85,8 @@ $(document).ready(function (){
             _onChange();
             const from = event.detail.from.container.className.replace('grid', '').replace(/\s/g, '');
             const to = event.detail.to.container.className.replace('grid', '').replace(/\s/g, '');
-            const index = event.detail.draggedElement.outerText.substring(event.detail.draggedElement.outerText.indexOf('Output_') + 7/*, event.detail.draggedElement.outerText.indexOf('Output_') + 9*/);
+            //const index = event.detail.draggedElement.outerText.substring(event.detail.draggedElement.outerText.indexOf('Output_') + 7/*, event.detail.draggedElement.outerText.indexOf('Output_') + 9*/);
+            const index = event.detail.draggedElement.id.substring(event.detail.draggedElement.id.indexOf('Output_') + 7);
             if (device.zones[from]){
                 if (device.zones[from].outputs.indexOf(index) !== -1){
                     device.zones[from].outputs = device.zones[from].outputs.toString().replace(index, '').replace('', '').split(',').filter(String).sort();
@@ -103,7 +104,8 @@ $(document).ready(function (){
             _onChange();
             const from = event.detail.from.container.className.replace('grid', '').replace(/\s/g, '');
             const to = event.detail.to.container.className.replace('grid', '').replace(/\s/g, '');
-            const index = event.detail.draggedElement.outerText.substring(event.detail.draggedElement.outerText.indexOf('Input_') + 6/*, event.detail.draggedElement.outerText.indexOf('Input_') + 9*/);
+            //const index = event.detail.draggedElement.outerText.substring(event.detail.draggedElement.outerText.indexOf('Input_') + 6/*, event.detail.draggedElement.outerText.indexOf('Input_') + 9*/);
+            const index = event.detail.draggedElement.id.substring(event.detail.draggedElement.id.indexOf('Input_') + 6);
             if (device.inputs[from]){
                 if (device.inputs[from].inputs.indexOf(index) !== -1){
                     device.inputs[from].inputs = device.inputs[from].inputs.toString().replace(index, '').replace('', '').split(',').filter(String).sort();
@@ -131,6 +133,14 @@ $(document).ready(function (){
 
     $('#save_to_dev-btn').click(function (){
         saveConfigToDevice();
+    });
+
+    $('#server-state-button').click(function (){
+        let val = false;
+        if (~$(this).attr('class').indexOf('red')){
+            val = true;
+        }
+        sendToadapter('sigmaTCP', {val}, function (){});
     });
 
     $('#reboot_dev-btn').click(function (){
@@ -245,7 +255,7 @@ function showMapZoneOtputsContainer(cb){
             '                    <div class="grid undefined">' +
             '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Free outputs</span></div>';
         device.zones.undefined.outputs.forEach(function (item){
-            html += '<div class="z-depth-3 item col s12">' +
+            html += '<div class="z-depth-3 item col s12" id="Output_' + item + '">' +
                 '       <div class="content lmdd-block"><i class="material-icons handle" >volume_up</i>' +
                 '<span >Output_' + item + '</span>' +
                 /*'            <div class="task">Output_' + item + '</div>\n' +*/
@@ -270,7 +280,7 @@ function showMapInputsContainer(cb){
             '                    <div class="grid undefined">' +
             '                        <div class="title z-depth-2 outputs-grid" ><i class="material-icons" >grid_off</i><span>Unnamed inputs</span></div>';
         device.inputs.undefined.inputs.forEach(function (item){
-            html += '<div class="z-depth-3 item col s12">' +
+            html += '<div class="z-depth-3 item col s12" id="Input_' + item + '">' +
                 '       <div class="content lmdd-block"><i class="material-icons handle" >input</i>' +
                 '<span >Input_' + item + '</span>' +
                 '       </div>' +
@@ -299,7 +309,7 @@ function drawMapZone(){
                     '           </div>';
                 if (device.zones[zone].outputs.length > 0){
                     device.zones[zone].outputs.forEach(function (item){
-                        html += '<div class="z-depth-3 item col s12 ">\n' +
+                        html += '<div class="z-depth-3 item col s12 " id="Output_' + item + '">\n' +
                             '       <div class="content lmdd-block"><i class="material-icons handle">volume_up</i>' +
                             '<span>Output_' + item + '</span>' + //launch speaker speaker_group headset
                             '<a class="" onclick="beepZone(\'' + item + '\')" title="Play a beep on this output"><i class="beepZone material-icons cyan-text text-darken-4 Tiny" style="cursor:pointer;vertical-align: middle;position: absolute;float: right;right: 5px;top: 14px;">hearing</i></a>' +
@@ -327,7 +337,7 @@ function drawMapInput(){
                     '           </div>';
                 if (device.inputs[input].inputs.length > 0){
                     device.inputs[input].inputs.forEach(function (item){
-                        html += '<div class="z-depth-3 item col s12 ">\n' +
+                        html += '<div class="z-depth-3 item col s12 " id="Input_' + item + '">\n' +
                             '       <div class="content lmdd-block"><i class="material-icons handle">input</i>' +
                             '<span>Input_' + item + '</span>' + //launch speaker speaker_group headset
                             '       </div>' +
@@ -342,7 +352,8 @@ function drawMapInput(){
 }
 
 function beepZone(zone){
-    sendToadapter('beepZone', {zone}, function (msg){});
+    sendToadapter('beepZone', {zone}, function (msg){
+    });
 }
 
 function delZone(zone){
@@ -611,12 +622,36 @@ function showMap(){
 }
 
 function sockets(){
-    socket.emit('subscribe', namespace + '.info.*');
-    socket.emit('subscribeObjects', namespace + '.*');
+    socket.emit('subscribe', namespace + '.sigmaTCP.*');
+    //socket.emit('subscribe', namespace + '.info.*');
+    //socket.emit('subscribeObjects', namespace + '.*');
     socket.on('stateChange', function (id, state){
         if (id.substring(0, namespaceLen) !== namespace) return;
         if (state){
-
+            const ids = id.split('.');
+            const type_cmd = ids[2];
+            let cmd = ids[ids.length - 1];
+            let val = state.val;
+            console.log(id + ' stateChange ' + JSON.stringify(state));
+            //dspamp.0.sigmaTCP.running stateChange {"val":false,"ack":false,"ts":1632931911616,"q":0,"from":"system.adapter.admin.0","user":"system.user.admin","lc":1632931580994}
+            if (cmd === 'running' && state.ack){
+                if (val){
+                    $('#server-state-button').removeClass('red').addClass('green');
+                    $('.server-isrunning').removeClass('red-text').addClass('green-text');
+                    $('#server-state-button .material-icons').text('sync');
+                } else {
+                    $('#server-state-button').removeClass('green').addClass('red');
+                    $('.server-isrunning').removeClass('green-text').addClass('red-text');
+                    $('#server-state-button .material-icons').text('sync_disabled');
+                }
+            }
+            if (cmd === 'connected' && state.ack){
+                if (val){
+                    $('.sigma-isrunning').removeClass('red-text').addClass('green-text');
+                } else {
+                    $('.sigma-isrunning').removeClass('green-text').addClass('red-text');
+                }
+            }
         }
     });
     socket.on('objectChange', function (id, obj){

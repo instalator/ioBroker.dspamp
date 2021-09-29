@@ -105,6 +105,53 @@
             "native": {}
         },
         {
+            "_id": "sigmaTCP",
+            "type": "device",
+            "common": {
+                "name": "TCP/IP Server for SigmaStudio"
+            },
+            "native": {}
+        },
+        {
+            "_id": "sigmaTCP.running",
+            "type": "state",
+            "common": {
+                "role": "state",
+                "name": "Server is running",
+                "type": "boolean",
+                "read": true,
+                "write": true,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "sigmaTCP.connected",
+            "type": "state",
+            "common": {
+                "role": "state",
+                "name": "SigmaStudio connected to amplifier",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "sigmaTCP.log",
+            "type": "state",
+            "common": {
+                "role": "state",
+                "name": "Commands log",
+                "type": "string",
+                "read": true,
+                "write": false,
+                "def": ""
+            },
+            "native": {}
+        },
+        {
             "_id": "info",
             "type": "channel",
             "common": {
