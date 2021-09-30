@@ -4,8 +4,9 @@ const ws = require('ws');
 const fs = require('fs');
 const xml2js = require('xml2js');
 const splice = require('buffer-splice');
+const define = require('./lib/include.js');
 const net = require('net');
-//const client = new net.Socket();
+//const tas6424 = define(__dirname + '/include/define_TAS6424.h');
 
 let adapter, host = '127.0.0.1', port = 81, dsp, timeOutSend, pollTimeout, pingTimer, timeoutTimer, timeOutReconnect, isAlive = false, device = {}, dataFile = 'device.json',
     iteration = 0,
@@ -74,18 +75,29 @@ const formats = {
 const modules = [
     {
         name:       '8 Channel Amplifier',
+        chip:       'tas6424',
         img:        '8champ.png',
         i2cAddress: '6A',
-        checkReg:   '01'
+        checkReg:   '01',
+        address:    [0x6A, 0x6B],
+        reg:        {
+            CHANNEL_STATE: 0x0F,
+            WARN:          0x13,
+            GLOB_FAULT1:   0x11,
+            GLOB_FAULT2:   0x12,
+            CHANNEL_FAULT: 0x10
+        }
     },
     {
         name:       '4 analog input',
+        chip:       'adau1978',
         img:        '4analoginput.png',
         i2cAddress: '11',
         checkReg:   '01'
     },
     {
         name:       '16 analog output',
+        chip:       'adau1966',
         img:        '16analogoutput.png',
         i2cAddress: '6C',
         checkReg:   '01'
@@ -147,6 +159,52 @@ const subObjects = {
         // Are created in a function "setSubObjectsControl"
     }
 };
+
+//a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_WARN
+/*
+//// RD[uint16_t reg][unsigned short count]  RDFFFF|FF  RD0066|04  //Чтение регистров DSP
+//// RN[uint8_t node][uint8_t slaveAddr][unsigned char AddrReg] RN0|FF|FF  RN0|6A|0F  //Чтение регистров слейвов на нодах
+//// RS[uint8_t node][uint8_t AddrReg]  RSFF|FF  RS00|0D  //Счетние регистров слейва
+//// RM[uint8_t reg]  RMFF  RM66  //Чтение регистров мастер ноды
+Serial.print("1-TAS6424: WARN - ");
+Serial.print(a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_WARN), HEX);
+Serial.print(" /GLOB_FAULT1 - ");
+Serial.print(a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_GLOB_FAULT1), HEX);
+Serial.print(" /CHANNEL_STATE - ");
+Serial.print(a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_CHANNEL_STATE), HEX);
+Serial.print(" /CHANNEL_FAULT - ");
+Serial.println(a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_CHANNEL_FAULT), HEX);
+*/
+
+function checkFaultModules(i_modules, i_addresses, i, cb){
+    const module = device.modules[i_modules];
+    const node = module.node;
+    const addr = module.address[i_addresses];
+    const regs = Object.values(module.reg);
+    const regs_name = Object.keys(module.reg);
+    const cmd = 'RN' + node + '|' + hex8(addr) + '|' + hex8(regs[i]);
+    send(cmd, (res) => {
+        console.log('cmd: ' + cmd + ' res: ' + hex8(regs[i]) + ': ' + res + ' ' + regs_name[i]);
+        i++;
+        if (i >= regs.length){
+            i_addresses++;
+            i = 0;
+            if (i_addresses >= module.address.length){
+                i_modules++;
+                i_addresses = 0;
+                if (i_modules >= device.modules.length){
+                    cb && cb();
+                } else {
+                    checkFaultModules(i_modules, i_addresses, i, cb);
+                }
+            } else {
+                checkFaultModules(i_modules, i_addresses, i, cb);
+            }
+        } else {
+            checkFaultModules(i_modules, i_addresses, i, cb);
+        }
+    });
+}
 
 const checkRole = (str) => {
     let role = 'state';
@@ -440,13 +498,17 @@ function parseSigma(){
         }
         if (addr === '0034'){ //Erase EEPROM
             timeSendSigma = 5000;
+        } else if (addr === 'F400'){ //Hibernate
+            timeSendSigma = 1000;
         } else {
-            timeSendSigma = 1;
+            timeSendSigma = 10;
         }
         if (packet){
             next = false;
-            const space = '                                                                                                         ';
-            SIGMA_LOG('Send to DSP > Mode: ' + mode + ' / Address: 0x' + addr + ' / Bytes: ' + lenData + '  / Data: ' + (lenData > 4 ? '\n'+ space : '')  + '0x'.concat(data.match(/[0-9a-f]{2}/g).join(', 0x')).match(/.{1,24}/g).join('\n'+space));
+            //const space = '                                                                                                         ';
+            //SIGMA_LOG('Send to DSP > Mode: ' + mode + ' / Address: 0x' + addr + ' / Bytes: ' + lenData + '  / Data: ' + (lenData > 4 ? '\n'+ space : '')  + '0x'.concat(data.match(/[0-9a-f]{2}/g).join(', 0x')).match(/.{1,24}/g).join('\n'+space));
+            SIGMA_LOG('>>> Send to DSP Mode: ' + mode + ' / Address: 0x' + addr + ' / Bytes: ' + lenData + '  / Data: ' + /*(lenData > 4 ? '\n'+ space : '')  +*/ '0x'.concat(data.match(/[0-9A-F]{2}/g)
+                .join(', 0x')));
             adapter.log.debug('client.write(' + packet.toString('hex').toUpperCase() + ')');
             client && client.write(packet);
         }
@@ -751,8 +813,12 @@ function checkModuleFromNodes(i, nodes, cb){
     send('RN' + nodes + '|' + modules[i].i2cAddress + '|' + modules[i].checkReg, (data) => { //RN00|6A|0F
         if (data !== '00'){
             scheme_modules[nodes] = {
-                img:  modules[i].img,
-                name: modules[i].name
+                img:     modules[i].img,
+                name:    modules[i].name,
+                node:    nodes,
+                chip:    modules[i].chip,
+                address: modules[i].address,
+                reg:     modules[i].reg
             };
             nodes++;
             i = -1;
@@ -829,53 +895,55 @@ function iterator(addresses){
             pollTimeout && clearTimeout(pollTimeout);
             pollTimeout = null;
             pause = 10;
-            const reg = hex16(addresses[iteration]);
-            const name = device.address_map[addresses[iteration]].name;
-            const main = device.address_map[addresses[iteration]].main;
-            send('RD' + reg + '|04', (val) => {
-                if (val !== 'error'){
-                    /*if(!device.schematic.modules[main]){
-                        delete device.address_map[addresses[iteration]];
-                        iteration++;
-                        if (iteration >= addresses.length){
-                            iteration = 0;
-                            setSatates(states);
-                            pause = 2000;
+            if (permit){
+                const reg = hex16(addresses[iteration]);
+                const name = device.address_map[addresses[iteration]].name;
+                const main = device.address_map[addresses[iteration]].main;
+                send('RD' + reg + '|04', (val) => {
+                    if (val !== 'error'){
+                        /*if(!device.schematic.modules[main]){
+                            delete device.address_map[addresses[iteration]];
+                            iteration++;
+                            if (iteration >= addresses.length){
+                                iteration = 0;
+                                setSatates(states);
+                                pause = 2000;
+                            }
+                            if (permit){
+                                iterator(addresses);
+                            }
+                            return;
+                        }*/
+                        const detailname = device.schematic.modules[main].DetailedName.replace(/[\d.]+$/, '');
+                        let id = adapter.namespace + '.control.' + main + '.' + name;
+                        if (formats[detailname]){
+                            val = formats[detailname].hexToVal(val);
+                        } else {
+                            //adapter.log.debug(`WARN! ${adapter.namespace + '.control.' + main + '.' + name} / Read value (${detailname}) not found in formats!\n Send this information to the developer!`);
                         }
-                        if (permit){
-                            iterator(addresses);
-                        }
-                        return;
-                    }*/
-                    const detailname = device.schematic.modules[main].DetailedName.replace(/[\d.]+$/, '');
-                    let id = adapter.namespace + '.control.' + main + '.' + name;
-                    if (formats[detailname]){
-                        val = formats[detailname].hexToVal(val);
-                    } else {
-                        //adapter.log.debug(`WARN! ${adapter.namespace + '.control.' + main + '.' + name} / Read value (${detailname}) not found in formats!\n Send this information to the developer!`);
-                    }
-                    if (~name.indexOf('NxN')){
-                        const outin = name.slice(name.indexOf('vol_')).replace('vol_', '').split('_');
-                        const _in = outin[1];
-                        const _out = outin[0];
-                        for (const zone in device.zones) {
-                            if (device.zones.hasOwnProperty(zone)){
-                                if (zone !== 'undefined' && device.zones[zone].outputs.length > 0){
-                                    for (const zone_out of device.zones[zone].outputs) {
-                                        if (zone_out === _out){
-                                            for (const input in device.inputs) {
-                                                if (device.inputs.hasOwnProperty(input)){
-                                                    if (input !== 'undefined' && device.inputs[input].inputs.length > 0){
-                                                        for (const input_in of device.inputs[input].inputs) {
-                                                            if (zone_out === _out && input_in === _in && device.splitter.inputs[input].includes(zone)){
-                                                                states[adapter.namespace + '.inputs.' + input + '.volume'] = val;
-                                                                states[adapter.namespace + '.zones.' + zone + '.volume'] = val;
-                                                                if (val === 0){
-                                                                    states[adapter.namespace + '.inputs.' + input + '.mute'] = true;
-                                                                    states[adapter.namespace + '.zones.' + zone + '.mute'] = true;
-                                                                } else {
-                                                                    states[adapter.namespace + '.inputs.' + input + '.mute'] = false;
-                                                                    states[adapter.namespace + '.zones.' + zone + '.mute'] = false;
+                        if (~name.indexOf('NxN')){
+                            const outin = name.slice(name.indexOf('vol_')).replace('vol_', '').split('_');
+                            const _in = outin[1];
+                            const _out = outin[0];
+                            for (const zone in device.zones) {
+                                if (device.zones.hasOwnProperty(zone)){
+                                    if (zone !== 'undefined' && device.zones[zone].outputs.length > 0){
+                                        for (const zone_out of device.zones[zone].outputs) {
+                                            if (zone_out === _out){
+                                                for (const input in device.inputs) {
+                                                    if (device.inputs.hasOwnProperty(input)){
+                                                        if (input !== 'undefined' && device.inputs[input].inputs.length > 0){
+                                                            for (const input_in of device.inputs[input].inputs) {
+                                                                if (zone_out === _out && input_in === _in && device.splitter.inputs[input].includes(zone)){
+                                                                    states[adapter.namespace + '.inputs.' + input + '.volume'] = val;
+                                                                    states[adapter.namespace + '.zones.' + zone + '.volume'] = val;
+                                                                    if (val === 0){
+                                                                        states[adapter.namespace + '.inputs.' + input + '.mute'] = true;
+                                                                        states[adapter.namespace + '.zones.' + zone + '.mute'] = true;
+                                                                    } else {
+                                                                        states[adapter.namespace + '.inputs.' + input + '.mute'] = false;
+                                                                        states[adapter.namespace + '.zones.' + zone + '.mute'] = false;
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -887,21 +955,24 @@ function iterator(addresses){
                                 }
                             }
                         }
-                    }
-                    states[id] = val;
-                    iteration++;
-                    if (iteration >= addresses.length){
-                        iteration = 0;
-                        setSatates(states);
-                        pause = 2000;
-                    }
-                    if (permit){
+                        states[id] = val;
+                        iteration++;
+                        if (iteration >= addresses.length){
+                            iteration = 0;
+                            setSatates(states);
+                            pause = 2000;
+                        }
+                        //if (permit){
                         iterator(addresses);
+                        //}
+                    } else {
+                        adapter.log.error('Response read data ' + 'RD' + reg + '|04 = ' + val);
                     }
-                } else {
-                    adapter.log.error('Response read data ' + 'RD' + reg + '|04 = ' + val);
-                }
-            });
+                });
+            } else {
+                pause = 100;
+                iterator(addresses);
+            }
         }, pause);
     }
 }
@@ -922,7 +993,9 @@ function setSatates(states){
             }
         }
     }
-    permit = true;
+    checkFaultModules(0, 0, 0, () => {
+        permit = true;
+    });
 }
 
 function pollDevice(){
@@ -1031,6 +1104,13 @@ function send(data, cb){
             dsp.send(data, (e) => {
                 if (e){
                     adapter.log.error('Send command: {' + data + '}, ERROR - ' + e);
+                    if (!timeoutTimer){
+                        connect();
+                    } else {
+                        if (dsp){
+                            dsp.ping('ping');
+                        }
+                    }
                     if (~e.toString().indexOf('CLOSED') || ~e.toString().indexOf('CONNECTING')){
                         adapter.setState('info.connection', false, true);
                         //connect();
@@ -1299,6 +1379,10 @@ function hex16(val){
     val &= 0xFFFF;
     const hex = val.toString(16).toUpperCase();
     return ('0000' + hex).slice(-4);
+}
+
+function hex8(val){
+    return ('0' + (Number(val).toString(16))).slice(-2).toUpperCase();
 }
 
 function hex32(val){

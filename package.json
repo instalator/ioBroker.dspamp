@@ -20,7 +20,9 @@
     "@iobroker/adapter-core": "^2.5.1",
     "websocket": "^1.0.34",
     "xml2js": "^0.4.23",
-    "buffer-splice": "^1.0.0"
+    "buffer-splice": "^1.0.0",
+    "autocast": "0.0.3",
+    "strsplit": "~1.0.0"
   },
   "devDependencies": {
     "@iobroker/testing": "^2.4.4",
