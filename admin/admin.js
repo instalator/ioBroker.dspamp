@@ -65,10 +65,10 @@ $(document).ready(function (){
     showDonate();
     $('.modal').modal();
     $('.modalsigma').modal({
-        onOpenStart:  function (modal, trigger){ // Callback for Modal open. Modal and trigger parameters available.
+        onOpenStart:  function (modal, trigger){
             $('#sigmalog').val('');
         },
-        onCloseStart: function (){ // Callback for Modal close
+        onCloseStart: function (){
             sendToadapter('sigmaTCP', {val: false}, function (){
             });
         }
@@ -643,8 +643,7 @@ function sockets(){
             const type_cmd = ids[2];
             let cmd = ids[ids.length - 1];
             let val = state.val;
-            console.log(id + ' stateChange ' + JSON.stringify(state));
-            //dspamp.0.sigmaTCP.running stateChange {"val":false,"ack":false,"ts":1632931911616,"q":0,"from":"system.adapter.admin.0","user":"system.user.admin","lc":1632931580994}
+            //console.log(id + ' stateChange ' + JSON.stringify(state));
             if (cmd === 'running' && state.ack){
                 if (val){
                     $('#server-state-button').removeClass('red').addClass('green');
