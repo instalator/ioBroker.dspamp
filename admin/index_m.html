@@ -59,14 +59,16 @@
                         </button>
                     </div>
                     <div class="col input-field right">
-                        <a id="sigmaserver-btn" class="btn modal-trigger waves-effect waves-light" href="#modalsigma">
-                            <span class="translate">sigmaTCPi</span>
-                            <i class="material-icons right">send</i>
+                        <!--<a id="sigmaserver-btn" class="btn modal-trigger waves-effect waves-light translateT" href="#modalsigma" title="TCPi gate for programming DSP">-->
+                        <a id="sigmaserver-btn" class="modal-trigger btn-floating waves-effect waves-light hoverable translateT" href="#modalsigma" title="TCPi gate for programming DSP">
+<!--                            <span class="translate">sigmaTCPi</span>-->
+                            <i class="material-icons right">settings_ethernet</i>
                         </a>
                     </div>
                     <div class="col input-field right">
-                        <a id="upload-btn" class="btn waves-effect waves-light modal-trigger right" href="#modalupload">
-                            <span class="translate">Upload config files</span>
+                        <!--<a id="upload-btn" class="btn waves-effect waves-light modal-trigger right" href="#modalupload">-->
+                        <a id="upload-btn" class="modal-trigger btn-floating waves-effect waves-light hoverable translateT right" href="#modalupload" title="Upload config files">
+                           <!-- <span class="translate">Upload config files</span>-->
                             <i class="material-icons right">file_upload</i>
                         </a>
                     </div>
@@ -212,7 +214,7 @@
         </div>
     </div>
     <div class="modal modalsigma modal-fixed-footer" id="modalsigma">
-        <div id="modal-sigma-content" class="modal-content">
+        <div id="modal-sigma-content" class="modal-content" style="width: 100% !important;height: calc(100% - 56px)!important;">
             <div class="row">
                 <div class="col">
                     <h6><span class="translate">SigmaStudio TCPi gate</span></h6>
@@ -224,17 +226,19 @@
             </div>
             <div class="row">
                 <span class="translate">SigmaStudio TCPi log</span>
-                <div id="sigmalog" class="col s12">
+                <div class="textarea">
+                    <textarea id="sigmalog" disabled="disabled" style="resize: none;font-size: .9em;height: calc(100% - 100px)"></textarea> <!--cols="120" rows="30"-->
                 </div>
             </div>
         </div>
         <div class="modal-footer">
             <div class="row">
                 <div class="col">
-                    <span class="translate">Server: </span><i class="server-isrunning material-icons Tiny red-text">brightness_1</i></a>
+                    <p style="font-size: .9em;">Server: <i class="server-isrunning material-icons Tiny red-text" style="vertical-align: sub;">brightness_1</i></p>
                 </div>
                 <div class="col">
-                    <span class="translate">SigmaStudio: </span><i class="sigma-isrunning material-icons Tiny red-text">brightness_1</i></a>
+                    <p style="font-size: .9em;">SigmaStudio: <i class="sigma-isrunning material-icons Tiny red-text" style="vertical-align: sub;">brightness_1</i>
+                    </p>
                 </div>
                 <a class="modal-close btn waves-effect waves-green">
                     <span class="translate">close</span>

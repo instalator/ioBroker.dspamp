@@ -602,4 +602,52 @@ systemDictionary = {
         'pl':    'Resetowanie',
         'zh-cn': '重启'
     },
+    'SigmaStudio TCPi gate':                                      {
+        'en':    'SigmaStudio TCPi gate',
+        'de':    'SigmaStudio TCPi-Gate',
+        'ru':    'Шлюз SigmaStudio TCPi',
+        'pt':    'Portão SigmaStudio TCPi',
+        'nl':    'SigmaStudio TCPi-poort',
+        'fr':    'Portail TCPi SigmaStudio',
+        'it':    'SigmaStudio TCPi gate',
+        'es':    'Puerta SigmaStudio TCPi',
+        'pl':    'Bramka SigmaStudio TCPi',
+        'zh-cn': 'SigmaStudio TCPi 门'
+    },
+    'SigmaStudio TCPi log':                                       {
+        'en':    'TCPi log',
+        'de':    'TCPi-Protokoll',
+        'ru':    'Журнал TCPi',
+        'pt':    'Log TCPi',
+        'nl':    'TCPi-logboek',
+        'fr':    'Journal TCPi',
+        'it':    'Registro TCPi',
+        'es':    'Registro TCPi',
+        'pl':    'Dziennik TCPi',
+        'zh-cn': 'TCPi日志'
+    },
+    'sigmaTCPi':                                                  {
+        'en':    'TCPi gate',
+        'de':    'TCPi-Gate',
+        'ru':    'Шлюз TCPi',
+        'pt':    'Portão TCPi',
+        'nl':    'TCPi-poort',
+        'fr':    'porte TCPi',
+        'it':    'porta TCPi',
+        'es':    'Puerta TCPi',
+        'pl':    'Bramka TCPi',
+        'zh-cn': 'TCPi门'
+    },
+    'TCPi gate for programming DSP':                              {
+        'en':    'TCPi gate for programming DSP',
+        'de':    'TCPi-Gate zum Programmieren von DSP',
+        'ru':    'Шлюз TCPi для программирования DSP',
+        'pt':    'Porta TCPi para programação DSP',
+        'nl':    'TCPi-poort voor het programmeren van DSP',
+        'fr':    'Porte TCPi pour la programmation DSP',
+        'it':    'Porta TCPi per la programmazione DSP',
+        'es':    'Puerta TCPi para programar DSP',
+        'pl':    'Bramka TCPi do programowania DSP',
+        'zh-cn': '用于编程 DSP 的 TCPi 门'
+    },
 };

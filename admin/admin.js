@@ -64,6 +64,16 @@ $(document).ready(function (){
     preloader(false);
     showDonate();
     $('.modal').modal();
+    $('.modalsigma').modal({
+        onOpenStart:  function (modal, trigger){ // Callback for Modal open. Modal and trigger parameters available.
+            $('#sigmalog').val('');
+        },
+        onCloseStart: function (){ // Callback for Modal close
+            sendToadapter('sigmaTCP', {val: false}, function (){
+            });
+        }
+    });
+
     lmdd.set(document.getElementById('map-zones'), {
         containerClass:     'grid',
         draggableItemClass: 'item',
@@ -140,7 +150,8 @@ $(document).ready(function (){
         if (~$(this).attr('class').indexOf('red')){
             val = true;
         }
-        sendToadapter('sigmaTCP', {val}, function (){});
+        sendToadapter('sigmaTCP', {val}, function (){
+        });
     });
 
     $('#reboot_dev-btn').click(function (){
@@ -259,7 +270,7 @@ function showMapZoneOtputsContainer(cb){
                 '       <div class="content lmdd-block"><i class="material-icons handle" >volume_up</i>' +
                 '<span >Output_' + item + '</span>' +
                 /*'            <div class="task">Output_' + item + '</div>\n' +*/
-                '<a class="" onclick="beepZone(\'' + item + '\')"  title="Play a beep on this output"><i class="beepZone material-icons cyan-text text-darken-4 Tiny" style="cursor:pointer;vertical-align: middle;position: absolute;float: right;right: 5px;top: 14px;">hearing</i></a>' +
+                '<a class="translateT" onclick="beepZone(\'' + item + '\')"  title="Play a beep on this output"><i class="beepZone material-icons cyan-text text-darken-4 Tiny" style="cursor:pointer;vertical-align: middle;position: absolute;float: right;right: 5px;top: 14px;">hearing</i></a>' +
                 '       </div>' +
                 '    </div>';
         });
@@ -305,14 +316,14 @@ function drawMapZone(){
                     '       <div class="grid ' + zone + '">' +
                     '           <div class="title z-depth-2" style="font-size: 1.3em;">' +
                     '               <i class="material-icons" style="vertical-align: bottom;">grid_on</i><span>' + zone + '</span>' +
-                    '               <a class="" onclick="delZone(\'' + zone + '\')"><i class="delZone material-icons cyan-text text-darken-4 right" style="cursor:pointer;">clear</i></a>' +
+                    '               <a class="translateT" title="Delete zone" onclick="delZone(\'' + zone + '\')"><i class="delZone material-icons cyan-text text-darken-4 right" style="cursor:pointer;">clear</i></a>' +
                     '           </div>';
                 if (device.zones[zone].outputs.length > 0){
                     device.zones[zone].outputs.forEach(function (item){
                         html += '<div class="z-depth-3 item col s12 " id="Output_' + item + '">\n' +
                             '       <div class="content lmdd-block"><i class="material-icons handle">volume_up</i>' +
                             '<span>Output_' + item + '</span>' + //launch speaker speaker_group headset
-                            '<a class="" onclick="beepZone(\'' + item + '\')" title="Play a beep on this output"><i class="beepZone material-icons cyan-text text-darken-4 Tiny" style="cursor:pointer;vertical-align: middle;position: absolute;float: right;right: 5px;top: 14px;">hearing</i></a>' +
+                            '<a class="translateT" title="Play a beep on this output" onclick="beepZone(\'' + item + '\')" title="Play a beep on this output"><i class="beepZone material-icons cyan-text text-darken-4 Tiny" style="cursor:pointer;vertical-align: middle;position: absolute;float: right;right: 5px;top: 14px;">hearing</i></a>' +
                             '       </div>' +
                             '    </div>';
                     });
@@ -333,7 +344,7 @@ function drawMapInput(){
                     '       <div class="grid ' + input + '">' +
                     '           <div class="title z-depth-2" style="font-size: 1.3em;">' +
                     '               <i class="material-icons" style="vertical-align: bottom;">grid_on</i><span>' + input + '</span>' +
-                    '               <a class="" onclick="delInput(\'' + input + '\')"><i class="delInput material-icons cyan-text text-darken-4 right" style="cursor:pointer;">clear</i></a>' +
+                    '               <a class="translateT" title="Delete input" onclick="delInput(\'' + input + '\')"><i class="delInput material-icons cyan-text text-darken-4 right" style="cursor:pointer;">clear</i></a>' +
                     '           </div>';
                 if (device.inputs[input].inputs.length > 0){
                     device.inputs[input].inputs.forEach(function (item){
@@ -412,12 +423,12 @@ function checkXmlProject(cb){
 function addFileList(){
     sendToadapter('readDir', null, function (msg){
         if (!msg.error){
-            let html = '<table><tr><th class="translate">filename</th><th>size</th><th>del</th></tr>';
+            let html = '<table><tr><th class="translate">File name</th><th>Size</th><th>Del</th></tr>';
             if (msg.length > 0){
                 for (let i = 0; i < msg.length; i++) {
                     html += '<tr><td><i class="material-icons cyan-text text-darken-4">description</i><span style="vertical-align: super;">' + msg[i].name + '</span></td>' +
                         '<td>' + parseFloat(msg[i].stats.size / 1024).toFixed(1) + ' kB</td>' +
-                        '<td><a class="" onclick="delFile(\'' + msg[i].name + '\')"><i class="delfile material-icons cyan-text text-darken-4" style="cursor: pointer;">clear</i></a></td></tr>';
+                        '<td><a class="translateT" title="Delete file" onclick="delFile(\'' + msg[i].name + '\')"><i class="delfile material-icons cyan-text text-darken-4" style="cursor: pointer;">clear</i></a></td></tr>';
                 }
             }
             html += '</table>';
@@ -651,6 +662,11 @@ function sockets(){
                 } else {
                     $('.sigma-isrunning').removeClass('green-text').addClass('red-text');
                 }
+            }
+            if (cmd === 'log' && state.ack){
+                const textarea = $('#sigmalog');
+                textarea.val(textarea.val() + val + '\n');
+                textarea.scrollTop(textarea.prop('scrollHeight') - textarea.height());
             }
         }
     });

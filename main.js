@@ -5,12 +5,12 @@ const fs = require('fs');
 const xml2js = require('xml2js');
 const splice = require('buffer-splice');
 const net = require('net');
-const client = new net.Socket();
+//const client = new net.Socket();
 
 let adapter, host = '127.0.0.1', port = 81, dsp, timeOutSend, pollTimeout, pingTimer, timeoutTimer, timeOutReconnect, isAlive = false, device = {}, dataFile = 'device.json',
     iteration = 0,
     pause = 10, permit = false, states = {}, old_states = {};
-let timeoutSigma, timeoutSendSigma, timeSendSigma = 1, _socket, server, next = true;
+let timeoutSigma, timeoutSendSigma, timeSendSigma = 1, _socket, server, client, next = true;
 let buffer_sigma = Buffer.from([]);
 const scheme_modules = [];
 
@@ -445,8 +445,8 @@ function parseSigma(){
         }
         if (packet){
             next = false;
-            adapter.log.debug('Mode: ' + mode + ' Address: 0x' + addr + ' Bytes: ' + lenData + ' Data: ' + data);
-            adapter.setState('sigmaTCP.log', 'Mode: ' + mode + ' Address: 0x' + addr + ' Bytes: ' + lenData + ' Data: ' + data, true);
+            const space = '                                                                                                         ';
+            sigma_log('Send to DSP > Mode: ' + mode + ' / Address: 0x' + addr + ' / Bytes: ' + lenData + '  / Data: ' + (lenData > 4 ? '\n'+ space : '')  + '0x'.concat(data.match(/[0-9a-f]{2}/g).join(', 0x')).match(/.{1,24}/g).join('\n'+space));
             //adapter.log.debug('Send lenPacket: ' + lenPacket + ' lenData: ' + lenData + ' Data: ' + Buffer.from(packet).toString("hex"));
             adapter.log.debug('client.write(' + packet.toString('hex').toUpperCase() + ')');
             client && client.write(packet);
@@ -455,14 +455,14 @@ function parseSigma(){
 }
 
 function sigmaTCPClient(){
-    client.connect(8086, adapter.config.host, () => {
-        adapter.log.info(`Sigma TCP Client Connected to amplifier`);
+    client = net.connect(8086, adapter.config.host, () => {
+        sigma_log(`Amplifier connected`);
         adapter.setState('sigmaTCP.connected', true, true);
     });
     client.on('data', (data) => {
         //adapter.log.debug('client data - ' + data);
         if (data.toString() === '>'){
-            adapter.log.debug('Send next packet to amplifier');
+            adapter.log.debug('Send next packet to Amplifier');
             timeoutSendSigma = setTimeout(() => {
                 next = true;
             }, timeSendSigma);
@@ -471,10 +471,10 @@ function sigmaTCPClient(){
         }
     });
     client.on('error', (e) => {
-        adapter.log.error(`Connection error ${e}`);
+        sigma_log(`Amplifier client error: ${e}`);
     });
     client.on('close', () => {
-        adapter.log.info(`Sigma TCP Client Connection closed`);
+        sigma_log(`Amplifier connection closed`);
         adapter.setState('sigmaTCP.connected', false, true);
     });
 }
@@ -482,8 +482,11 @@ function sigmaTCPClient(){
 function sigmaTCPServer(state){
     if (state){
         const sigma_port = 8086, sigma_host = '127.0.0.1';
+        server && server.close();
+        server = null;
         server = net.createServer((socket) => {
             _socket = socket;
+            sigma_log(`SigmaStudio connected`);
             sigmaTCPClient();
             socket.on('data', (data) => {
                 buffer_sigma = Buffer.concat([buffer_sigma, data]);
@@ -499,33 +502,40 @@ function sigmaTCPServer(state){
                 }, 10000);
             });
             socket.on('connect', () => {
-                adapter.log.debug(`sigmaTCP Socket connect`);
+                sigma_log(`&&&&&&&&& SigmaStudio connected`);
             });
             socket.on('close', () => {
-                adapter.log.debug(`sigmaTCP socket closed`);
+                sigma_log(`SigmaStudio connection closed`);
                 timeoutSigma && clearInterval(timeoutSigma);
                 client && client.end();
-                adapter.setState('sigmaTCP.running', false, true);
+                client && client.destroy();
+                //adapter.setState('sigmaTCP.running', false, true);
             });
         }).on('error', (e) => {
-            adapter.log.error(`sigmaTCP Error: ${e}`);
+            sigma_log(`TCPi server error: ${e}`);
             timeoutSigma && clearInterval(timeoutSigma);
             client && client.end();
             adapter.setState('sigmaTCP.running', false, true);
         }).on('close', () => {
-            adapter.log.debug(`SigmaStudio server closed`);
+            sigma_log(`TCPi server closed`);
             adapter.setState('sigmaTCP.running', false, true);
         });
         server.listen(sigma_port, sigma_host, () => {
             buffer_sigma = Buffer.from([]);
-            adapter.log.debug(`Opened TCP/IP SigmaStudio server on ${JSON.stringify(server.address())}`);
-            adapter.setState('sigmaTCP.log', `Opened server on ${JSON.stringify(server.address())}`, true);
+            sigma_log(`TCPi server started on ${JSON.stringify(server.address())}`);
             adapter.setState('sigmaTCP.running', true, true);
         });
     } else {
         _socket && _socket.destroy();
+        client && client.end();
         server && server.close();
+        server = null;
     }
+}
+
+function sigma_log(txt){
+    adapter.setState('sigmaTCP.log', txt, true);
+    adapter.log.debug(txt);
 }
 
 function writeFile(filename, data, cb){
