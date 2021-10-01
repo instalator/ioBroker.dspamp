@@ -4,9 +4,7 @@ const ws = require('ws');
 const fs = require('fs');
 const xml2js = require('xml2js');
 const splice = require('buffer-splice');
-const define = require('./lib/include.js');
 const net = require('net');
-//const tas6424 = define(__dirname + '/include/define_TAS6424.h');
 
 let adapter, host = '127.0.0.1', port = 81, dsp, timeOutSend, pollTimeout, pingTimer, timeoutTimer, timeOutReconnect, isAlive = false, device = {}, dataFile = 'device.json',
     iteration = 0,
@@ -16,6 +14,10 @@ let buffer_sigma = Buffer.from([]);
 const scheme_modules = [];
 
 const maxdBLevel = 0; // Максимальный уровень в дБ
+
+const BIT = (n) => {
+    return (1 << n);
+};
 
 const formats = {
     ExternalGainAlgSlew145X: {
@@ -72,6 +74,66 @@ const formats = {
     }
 };
 
+const errorsList = {
+    tas6424: {
+        WARN:          {
+            WARN_VDD_UV:      BIT(6),
+            WARN_VDD_POR:     BIT(5),
+            WARN_VDD_OTW:     BIT(4),
+            WARN_VDD_OTW_CH1: BIT(3),
+            WARN_VDD_OTW_CH2: BIT(2),
+            WARN_VDD_OTW_CH3: BIT(1),
+            WARN_VDD_OTW_CH4: BIT(0),
+        },
+        GLOB_FAULT1:   {
+            FAULT_CLOCK:   BIT(4),
+            FAULT_PVDD_OV: BIT(3),
+            FAULT_VBAT_OV: BIT(2),
+            FAULT_PVDD_UV: BIT(1),
+            FAULT_VBAT_UV: BIT(0),
+        },
+        GLOB_FAULT2:   {
+            FAULT_OTSD:     BIT(4),
+            FAULT_OTSD_CH1: BIT(3),
+            FAULT_OTSD_CH2: BIT(2),
+            FAULT_OTSD_CH3: BIT(1),
+            FAULT_OTSD_CH4: BIT(0),
+        },
+        CHANNEL_STATE: {
+            //CH1_STATE_MASK: GENMASK(7, 6),
+            CH1_STATE_PLAY: (0x00 << 6),
+            CH1_STATE_HIZ:  (0x01 << 6),
+            CH1_STATE_MUTE: (0x02 << 6),
+            CH1_STATE_DIAG: (0x03 << 6),
+            //CH2_STATE_MASK: GENMASK(5, 4),
+            CH2_STATE_PLAY: (0x00 << 4),
+            CH2_STATE_HIZ:  (0x01 << 4),
+            CH2_STATE_MUTE: (0x02 << 4),
+            CH2_STATE_DIAG: (0x03 << 4),
+            //CH3_STATE_MASK: GENMASK(3, 2),
+            CH3_STATE_PLAY: (0x00 << 2),
+            CH3_STATE_HIZ:  (0x01 << 2),
+            CH3_STATE_MUTE: (0x02 << 2),
+            CH3_STATE_DIAG: (0x03 << 2),
+            //CH4_STATE_MASK: GENMASK(1, 0),
+            CH4_STATE_PLAY: (0x00 << 0),
+            CH4_STATE_HIZ:  (0x01 << 0),
+            CH4_STATE_MUTE: (0x02 << 0),
+            CH4_STATE_DIAG: (0x03 << 0),
+        },
+        CHANNEL_FAULT: {
+            CH1_OVERCURRENT: BIT(7),
+            CH2_OVERCURRENT: BIT(6),
+            CH3_OVERCURRENT: BIT(5),
+            CH4_OVERCURRENT: BIT(4),
+            CH1_DCDETECT:    BIT(3),
+            CH2_DCDETECT:    BIT(2),
+            CH3_DCDETECT:    BIT(1),
+            CH4_DCDETECT:    BIT(0),
+        }
+    }
+};
+
 const modules = [
     {
         name:       '8 Channel Amplifier',
@@ -81,11 +143,31 @@ const modules = [
         checkReg:   '01',
         address:    [0x6A, 0x6B],
         reg:        {
-            CHANNEL_STATE: 0x0F,
-            WARN:          0x13,
-            GLOB_FAULT1:   0x11,
-            GLOB_FAULT2:   0x12,
-            CHANNEL_FAULT: 0x10
+            WARN:          {
+                addr:  0x13,
+                state: [],
+                error: []
+            },
+            GLOB_FAULT1:   {
+                addr:  0x11,
+                state: [],
+                error: []
+            },
+            GLOB_FAULT2:   {
+                addr:  0x12,
+                state: [],
+                error: []
+            },
+            CHANNEL_STATE: {
+                addr:  0x0F,
+                state: [],
+                error: []
+            },
+            CHANNEL_FAULT: {
+                addr:  0x10,
+                state: [],
+                error: []
+            }
         }
     },
     {
@@ -93,98 +175,103 @@ const modules = [
         chip:       'adau1978',
         img:        '4analoginput.png',
         i2cAddress: '11',
-        checkReg:   '01'
+        checkReg:   '01',
+        address:    [],
+        reg:        {}
     },
     {
         name:       '16 analog output',
         chip:       'adau1966',
         img:        '16analogoutput.png',
         i2cAddress: '6C',
-        checkReg:   '01'
+        checkReg:   '01',
+        address:    [],
+        reg:        {}
     }
 ];
 
 const subObjects = {
-    zones:   {
-        volume: {
-            role:  'level.volume',
-            name:  'Volume zone',
-            type:  'number',
-            min:   0,
-            max:   100,
-            read:  true,
-            write: true
-        },
-        mute:   {
-            role:  'media.mute',
-            name:  'Volume zone',
-            type:  'boolean',
-            read:  true,
-            write: true
-        },
-        inputs: {
-            role:  'state',
-            name:  'Devices with output to the zone',
-            type:  'string',
-            read:  true,
-            write: true
-        }
+    zones:            {
+        volume: {role: 'level.volume', name: 'Volume zone', type: 'number', min: 0, max: 100, read: true, write: true},
+        mute:   {role: 'media.mute', name: 'Volume zone', type: 'boolean', read: true, write: true},
+        inputs: {role: 'state', name: 'Devices with output to the zone', type: 'string', read: true, write: true}
     },
-    inputs:  {
-        volume:  {
-            role:  'level.volume',
-            name:  'Volume input',
-            type:  'number',
-            min:   0,
-            max:   100,
-            read:  true,
-            write: true
-        },
-        mute:    {
-            role:  'media.mute',
-            name:  'Volume input',
-            type:  'boolean',
-            read:  true,
-            write: true
-        },
-        to_zone: {
-            role:  'state',
-            name:  'Outputting sound to zones',
-            type:  'string',
-            read:  true,
-            write: true
-        }
+    inputs:           {
+        volume:  {role: 'level.volume', name: 'Volume input', type: 'number', min: 0, max: 100, read: true, write: true},
+        mute:    {role: 'media.mute', name: 'Volume input', type: 'boolean', read: true, write: true},
+        to_zone: {role: 'state', name: 'Outputting sound to zones', type: 'string', read: true, write: true}
     },
-    control: {
-        // Are created in a function "setSubObjectsControl"
-    }
+    control:          {/* Are created in a function "setSubObjectsControl"*/},
+    WARN_VDD_UV:      {role: 'state', name: 'Undervoltage Warning', type: 'boolean', read: true, write: false},
+    WARN_VDD_POR:     {role: 'state', name: 'Power-On-Reset Warning', type: 'boolean', read: true, write: false},
+    WARN_VDD_OTW:     {role: 'state', name: 'Global Overtemperature Warning', type: 'boolean', read: true, write: false},
+    WARN_VDD_OTW_CH1: {role: 'state', name: 'Channel 1 Overtemperature Warning', type: 'boolean', read: true, write: false},
+    WARN_VDD_OTW_CH2: {role: 'state', name: 'Channel 2 Overtemperature Warning', type: 'boolean', read: true, write: false},
+    WARN_VDD_OTW_CH3: {role: 'state', name: 'Channel 3 Overtemperature Warning', type: 'boolean', read: true, write: false},
+    WARN_VDD_OTW_CH4: {role: 'state', name: 'Channel 4 Overtemperature Warning', type: 'boolean', read: true, write: false},
+    FAULT_CLOCK:      {role: 'state', name: 'Fault clock', type: 'boolean', read: true, write: false},
+    FAULT_PVDD_OV:    {role: 'state', name: 'Overvoltage fault', type: 'boolean', read: true, write: false},
+    FAULT_VBAT_OV:    {role: 'state', name: 'Overvoltage fault', type: 'boolean', read: true, write: false},
+    FAULT_PVDD_UV:    {role: 'state', name: 'Undervoltage fault', type: 'boolean', read: true, write: false},
+    FAULT_VBAT_UV:    {role: 'state', name: 'Undervoltage fault', type: 'boolean', read: true, write: false},
+    FAULT_OTSD:       {role: 'state', name: 'Global Overtemperature Shutdown', type: 'boolean', read: true, write: false},
+    FAULT_OTSD_CH1:   {role: 'state', name: 'Channel 1 Overtemperature Shutdown', type: 'boolean', read: true, write: false},
+    FAULT_OTSD_CH2:   {role: 'state', name: 'Channel 2 Overtemperature Shutdown', type: 'boolean', read: true, write: false},
+    FAULT_OTSD_CH3:   {role: 'state', name: 'Channel 3 Overtemperature Shutdown', type: 'boolean', read: true, write: false},
+    FAULT_OTSD_CH4:   {role: 'state', name: 'Channel 4 Overtemperature Shutdown', type: 'boolean', read: true, write: false},
+    CH1_STATE_PLAY:   {role: 'state', name: 'Channel 1 Play', type: 'boolean', read: true, write: false},
+    CH1_STATE_HIZ:    {role: 'state', name: 'Channel 1 Hi-Z', type: 'boolean', read: true, write: false},
+    CH1_STATE_MUTE:   {role: 'state', name: 'Channel 1 Mute', type: 'boolean', read: true, write: false},
+    CH1_STATE_DIAG:   {role: 'state', name: 'Channel 1 DC load diagnostics', type: 'boolean', read: true, write: false},
+    CH2_STATE_PLAY:   {role: 'state', name: 'Channel 2 Play', type: 'boolean', read: true, write: false},
+    CH2_STATE_HIZ:    {role: 'state', name: 'Channel 2 Hi-Z', type: 'boolean', read: true, write: false},
+    CH2_STATE_MUTE:   {role: 'state', name: 'Channel 2 Mute', type: 'boolean', read: true, write: false},
+    CH2_STATE_DIAG:   {role: 'state', name: 'Channel 2 DC load diagnostics', type: 'boolean', read: true, write: false},
+    CH3_STATE_PLAY:   {role: 'state', name: 'Channel 3 Play', type: 'boolean', read: true, write: false},
+    CH3_STATE_HIZ:    {role: 'state', name: 'Channel 3 Hi-Z', type: 'boolean', read: true, write: false},
+    CH3_STATE_MUTE:   {role: 'state', name: 'Channel 3 Mute', type: 'boolean', read: true, write: false},
+    CH3_STATE_DIAG:   {role: 'state', name: 'Channel 3 DC load diagnostics', type: 'boolean', read: true, write: false},
+    CH4_STATE_PLAY:   {role: 'state', name: 'Channel 4 Play', type: 'boolean', read: true, write: false},
+    CH4_STATE_HIZ:    {role: 'state', name: 'Channel 4 Hi-Z', type: 'boolean', read: true, write: false},
+    CH4_STATE_MUTE:   {role: 'state', name: 'Channel 4 Mute', type: 'boolean', read: true, write: false},
+    CH4_STATE_DIAG:   {role: 'state', name: 'Channel 4 DC load diagnostics', type: 'boolean', read: true, write: false},
+    CH1_OVERCURRENT:  {role: 'state', name: 'Channel 1 Overcurrent Shutdown', type: 'boolean', read: true, write: false},
+    CH2_OVERCURRENT:  {role: 'state', name: 'Channel 2 Overcurrent Shutdown', type: 'boolean', read: true, write: false},
+    CH3_OVERCURRENT:  {role: 'state', name: 'Channel 3 Overcurrent Shutdown', type: 'boolean', read: true, write: false},
+    CH4_OVERCURRENT:  {role: 'state', name: 'Channel 4 Overcurrent Shutdown', type: 'boolean', read: true, write: false},
+    CH1_DCDETECT:     {role: 'state', name: 'Channel 1 DC Detected', type: 'boolean', read: true, write: false},
+    CH2_DCDETECT:     {role: 'state', name: 'Channel 2 DC Detected', type: 'boolean', read: true, write: false},
+    CH3_DCDETECT:     {role: 'state', name: 'Channel 3 DC Detected', type: 'boolean', read: true, write: false},
+    CH4_DCDETECT:     {role: 'state', name: 'Channel 4 DC Detected', type: 'boolean', read: true, write: false},
 };
 
-//a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_WARN
-/*
-//// RD[uint16_t reg][unsigned short count]  RDFFFF|FF  RD0066|04  //Чтение регистров DSP
-//// RN[uint8_t node][uint8_t slaveAddr][unsigned char AddrReg] RN0|FF|FF  RN0|6A|0F  //Чтение регистров слейвов на нодах
-//// RS[uint8_t node][uint8_t AddrReg]  RSFF|FF  RS00|0D  //Счетние регистров слейва
-//// RM[uint8_t reg]  RMFF  RM66  //Чтение регистров мастер ноды
-Serial.print("1-TAS6424: WARN - ");
-Serial.print(a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_WARN), HEX);
-Serial.print(" /GLOB_FAULT1 - ");
-Serial.print(a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_GLOB_FAULT1), HEX);
-Serial.print(" /CHANNEL_STATE - ");
-Serial.print(a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_CHANNEL_STATE), HEX);
-Serial.print(" /CHANNEL_FAULT - ");
-Serial.println(a2b_NodeI2CSlaveRead(0x00, TAS1_ADDR, TAS6424_CHANNEL_FAULT), HEX);
-*/
+function parseError(){
+    device.modules.forEach((module, i_module) => {
+        for (const key in module.reg) {
+            module.reg[key].state.forEach((state, i_state) => {
+                if (!device.modules[i_module].reg[key].error[i_state]) device.modules[i_module].reg[key].error[i_state] = {};
+                if (!device.modules[i_module].reg[key].error[i_state][key]) device.modules[i_module].reg[key].error[i_state][key] = {};
+                for (const error in errorsList[module.chip][key]) {
+                    const mask = errorsList[module.chip][key][error];
+                    //device.modules[i_module].reg[key].error[i_state][key][error] = (parseInt(state, 16) & mask) === mask;
+                    states[adapter.namespace + '.modules.' + module.name.replace(/\s+/g, '_') + '_' + module.node + '.' + key + '_' + i_state + '.' + error] = (parseInt(state, 16) & mask) === mask;
+                }
+            });
+        }
+    });
+}
 
 function checkFaultModules(i_modules, i_addresses, i, cb){
     const module = device.modules[i_modules];
     const node = module.node;
     const addr = module.address[i_addresses];
-    const regs = Object.values(module.reg);
+    //const regs = Object.values(module.reg);
+    const regs = Object.entries(module.reg);
     const regs_name = Object.keys(module.reg);
-    const cmd = 'RN' + node + '|' + hex8(addr) + '|' + hex8(regs[i]);
+    const cmd = 'RN' + node + '|' + hex8(addr) + '|' + hex8(regs[i][1].addr);
     send(cmd, (res) => {
-        console.log('cmd: ' + cmd + ' res: ' + hex8(regs[i]) + ': ' + res + ' ' + regs_name[i]);
+        //console.log('cmd: ' + cmd + ' res: ' + hex8(regs[i][1].addr) + ': ' + res + ' ' + regs_name[i]);
+        device.modules[i_modules].reg[regs_name[i]].state[i_addresses] = res;
         i++;
         if (i >= regs.length){
             i_addresses++;
@@ -193,6 +280,7 @@ function checkFaultModules(i_modules, i_addresses, i, cb){
                 i_modules++;
                 i_addresses = 0;
                 if (i_modules >= device.modules.length){
+                    parseError();
                     cb && cb();
                 } else {
                     checkFaultModules(i_modules, i_addresses, i, cb);
@@ -981,18 +1069,57 @@ function setSatates(states){
     permit = false;
     for (const id in states) {
         if (states.hasOwnProperty(id)){
-            if (old_states[id] !== states[id] || states[id] === null){
-                const val = states[id];
-                adapter.setState(id, {
-                    val: val,
-                    ack: true
-                });
-                old_states[id] = states[id];
-            } else {
-                old_states[id] = states[id];
-            }
+            const val = states[id];
+            adapter.getObject(id, (err, obj) => {
+                const common = {
+                    name: id,
+                    desc: id,
+                    type: 'string',
+                    role: 'state'
+                };
+                let _id = id.split('.');
+                if (_id[2] !== 'zones' && _id[2] !== 'inputs' && _id[2] !== 'control'){
+                    _id = _id[_id.length - 1];
+                    if (subObjects[_id] !== undefined){
+                        common.name = subObjects[_id].name;
+                        common.desc = subObjects[_id].name;
+                        common.role = subObjects[_id].role;
+                        common.type = subObjects[_id].type;
+                        if (subObjects[_id].unit !== undefined) common.unit = subObjects[_id].unit;
+                        if (subObjects[_id].min !== undefined) common.min = subObjects[_id].unit;
+                        if (subObjects[_id].max !== undefined) common.max = subObjects[_id].unit;
+                        if (subObjects[_id].states !== undefined) common.states = subObjects[_id].states;
+                        if (subObjects[_id].def !== undefined) common.def = subObjects[_id].def;
+                        common.read = subObjects[_id].read;
+                        common.write = subObjects[_id].write;
+                    }
+                }
+                if (err || !obj){
+                    adapter.setObject(id, {
+                        type:   'state',
+                        common: common,
+                        native: {}
+                    }, () => {
+                        adapter.setState(id, {
+                            val: val,
+                            ack: true
+                        });
+                    });
+                } else {
+                    if (old_states[id] !== states[id] || states[id] === null){
+                        adapter.setState(id, {
+                            val: val,
+                            ack: true
+                        });
+                        old_states[id] = states[id];
+                    } else {
+                        old_states[id] = states[id];
+                    }
+                }
+            });
         }
     }
+
     checkFaultModules(0, 0, 0, () => {
         permit = true;
     });

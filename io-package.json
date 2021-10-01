@@ -97,6 +97,14 @@
       "native": {}
     },
     {
+      "_id": "modules",
+      "type": "device",
+      "common": {
+        "name": "Modules"
+      },
+      "native": {}
+    },
+    {
       "_id": "inputs",
       "type": "device",
       "common": {

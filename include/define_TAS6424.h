@@ -67,7 +67,7 @@
 
 /* TAS6424_CH_STATE_CTRL_REG */
 #define TAS6424_CH1_STATE_MASK    GENMASK(7, 6)
-#define TAS6424_CH1_STATE_PLAY    (0x00 << 6)
+#define TAS6424_CH1_STATE_PLAY    (0x00 << 6) //(BIT(2) | BIT(3) | BIT(4))
 #define TAS6424_CH1_STATE_HIZ     (0x01 << 6)
 #define TAS6424_CH1_STATE_MUTE    (0x02 << 6)
 #define TAS6424_CH1_STATE_DIAG    (0x03 << 6)
